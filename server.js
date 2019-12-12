@@ -1,11 +1,9 @@
-const express = require('express')
-
-const app = express()
-
-const baseDir = `${__dirname}/build/`
-
-app.use(express.static(`${baseDir}`))
-
-app.get('*', (req,res) => res.sendFile('index.html' , { root : baseDir }))
+const express = require('express');
+const path = require('path');
+const app = express();
+app.use(express.static(path.join(__dirname, 'build')));
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 app.listen(21178, () => console.log(`Servidor subiu com sucesso na porta 21178`))
