@@ -5,5 +5,6 @@ app.use(express.static(path.join(__dirname, 'build')));
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
+const port = process.env.PORT_PUB_SERVER || 3001
 
-app.listen(3001, () => { console.log(`Servidor subiu com sucesso na porta 21178`); console.log(JSON.stringify(process.env)) })
+app.listen(port, () => { console.log(`Servidor subiu com sucesso na porta ${port}`); })
