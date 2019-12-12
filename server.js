@@ -7,4 +7,4 @@ app.get('/', function(req, res) {
 });
 const port = process.env.PORT_PUB_SERVER || 3001
 
-app.listen(port, () => { console.log(`Servidor subiu com sucesso na porta ${port}`); })
+app.listen(port, () => { console.log(`Servidor subiu com sucesso na porta ${ port}`); })
