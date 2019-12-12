@@ -6,6 +6,6 @@ app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-const port = process.env.PORT_SERVER || 3001
+const port = process.env.PORT_APP || 3001
 
 app.listen(port, () => console.log(`Servidor subiu com sucesso na porta ${port}`))
