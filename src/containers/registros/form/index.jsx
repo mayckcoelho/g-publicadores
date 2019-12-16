@@ -30,7 +30,7 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                 if (response) {
                     const newValues = {
                         ...response.data,
-                        mesAnoM: moment(response.data.mesAno.split('T')[0]),
+                        mesAnoM: moment(response.data.mesAno, 'MM/YYYY')
                     }
                     setValues(newValues)
                 }
@@ -215,7 +215,7 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
 const HandleFormRegistros = withFormik({
     mapPropsToValues: () => ({
         mesAnoM: moment(),
-        mesAno: '',
+        mesAno: moment().format('MM/YYYY'),
         publicacoes: '0',
         videos: '0',
         horas: '0',
