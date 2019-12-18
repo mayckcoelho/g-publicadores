@@ -1,3 +1,10 @@
+export const TipoPrivilegio = [
+    { value: "R", label: "Pioneiro" },
+    { value: "M", label: "Missionário" },
+    { value: "S", label: "Servo Ministerial" },
+    { value: "A", label: "Ancião" }
+]
+
 export const TipoMascara = {
     cnpj: { regex: /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/g, replace: '$1.$2.$3/$4-$5' },
     cpf: { regex: /^(\d{3})(\d{3})(\d{3})(\d{2})$/g, replace: '$1.$2.$3-$4' },

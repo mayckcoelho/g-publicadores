@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { withRouter } from 'react-router-dom'
 import api from '../../../services'
+import { TipoPrivilegio } from '../../../enums'
 
 import { Row, Col, Button, Icon, Form, PageHeader, Spin, Modal, Drawer, message, Radio } from 'antd'
 import { withFormik, Field, Form as FormFormik } from 'formik'
@@ -199,19 +200,14 @@ const FormPublicadores = ({ resetForm, values, setFieldValue, setValues, errors,
                         <Row gutter={30}>
                             <Col xs={24} sm={24}>
                                 <Form.Item label="Privilégio">
-                                    <Radio.Group
-                                        name="privilegio"
-                                        value={values.privilegio}
-                                        onChange={e => {
-                                            setFieldValue('privilegio', e.target.value)
-                                        }}
-                                        buttonStyle="solid">
-                                        <Radio.Button value="P">Publicador</Radio.Button>
-                                        <Radio.Button value="R">Pioneiro</Radio.Button>
-                                        <Radio.Button value="M">Missionário</Radio.Button>
-                                        <Radio.Button value="S">Servo Ministerial</Radio.Button>
-                                        <Radio.Button value="A">Ancião</Radio.Button>
-                                    </Radio.Group>
+                                    <Select
+                                        name='privilegio'
+                                        mode="multiple"
+                                        placeholder='Selecione um ou mais privilégios'
+                                        value={values.privilegio ? values.privilegio.split(',') : undefined}
+                                        options={TipoPrivilegio}
+                                        onChange={value => setFieldValue('privilegio', value.join(','))}
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -246,6 +242,7 @@ const HandleFormPublicadores = withFormik({
     validationSchema: SchemaValidate,
 
     handleSubmit: async (values, { props: { publicador, handleVisible }, resetForm }) => {
+        //console.log(JSON.stringify(values));
         confirm({
             title: 'Confirmar',
             content: `Deseja realmente salvar ${!publicador ? "este" : "a edição deste"} Publicador?`,

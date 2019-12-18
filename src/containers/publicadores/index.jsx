@@ -30,7 +30,7 @@ const Publicadores = ({ history }) => {
         {
             title: 'Privilégio',
             dataIndex: 'privilegio',
-            render: status => 
+            render: p => p.split(',').map(status => (
                 <Tag color={{
                     'P': 'magenta',
                     'R': 'volcano',
@@ -43,7 +43,7 @@ const Publicadores = ({ history }) => {
                     'M': 'Missionário',
                     'S': 'Servo Ministerial',
                     'A': 'Ancião' 
-                 }[status]}</Tag>,
+                 }[status]}</Tag>)),
         },
         {
             title: 'Status',
