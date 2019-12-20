@@ -20,10 +20,12 @@ const Usuarios = () => {
             title: 'Nome',
             dataIndex: 'name',
             width: '20%',
+            filterSearch: true
         },
         {
             title: 'E-mail',
             dataIndex: 'email',
+            filterSearch: true
         },
         {
             title: '',

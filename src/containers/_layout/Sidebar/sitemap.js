@@ -7,13 +7,6 @@ export default [
     //     param: ""
     // },
     {
-        resource: "grupos",
-        title: "Grupos",
-        icon: "team",
-        route: "/grupos",
-        param: ""
-    },
-    {
         resource: "publicadores",
         title: "Publicadores",
         icon: "user",
@@ -25,6 +18,13 @@ export default [
         title: "Registros",
         icon: "solution",
         route: "/registros",
+        param: ""
+    },
+    {
+        resource: "grupos",
+        title: "Grupos",
+        icon: "team",
+        route: "/grupos",
         param: ""
     },
     {

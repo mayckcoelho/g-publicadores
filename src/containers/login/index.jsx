@@ -15,16 +15,16 @@ const Login = ({location}) => {
     } else {
         return (
             <StyleRow type="flex">
-                <ColImage span={16}></ColImage>
-                <ColLight span={8}>
-                    <Image src={Logo} alt="Azymus" />
-                    <HeaderForm>
-                        <h1>G-Publicadores</h1>
-                        <p>Acesse sua conta.</p>
-                    </HeaderForm>
-                    <LoginForm />
-                </ColLight>
-            </StyleRow>
+            <ColImage md={16} lg={16}></ColImage>
+            <ColLight xs={24} md={8} lg={8}>
+                <Image src={Logo} alt="G-Publicadores" />
+                <HeaderForm>
+                    <h1>G-Publicadores</h1>
+                    <p>Acesse sua conta.</p>
+                </HeaderForm>
+                <LoginForm />
+            </ColLight>
+        </StyleRow>
         )
     }
 }

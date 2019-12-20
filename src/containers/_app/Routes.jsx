@@ -7,16 +7,16 @@ import { MainLayout } from '../_layout/styles'
 import Login from '../login'
 import Home from '../home'
 
-import Grupos from '../grupos'
 import Publicadores from '../publicadores'
 import Registros from '../registros'
+import Grupos from '../grupos'
 import Usuarios from '../usuarios'
 
 const Pages = () => (
     <Switch>
-        <Route exact path="/grupos" component={Grupos} />
         <Route exact path="/publicadores" component={Publicadores} />
         <Route exact path="/registros" component={Registros} />
+        <Route exact path="/grupos" component={Grupos} />
         <Route exact path="/usuarios" component={Usuarios} />
     </Switch>
 )

@@ -19,10 +19,12 @@ const Grupos = ({ history }) => {
         {
             title: 'Nome',
             dataIndex: 'nome',
+            filterSearch: true
         },
         {
             title: 'Responsável',
             dataIndex: 'responsavel',
+            filterSearch: true
         },
         {
             title: '',

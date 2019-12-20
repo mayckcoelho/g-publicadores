@@ -21,17 +21,18 @@ const Publicadores = ({ history }) => {
             title: 'Nome',
             dataIndex: 'nome',
             width: '20%',
+            filterSearch: true
         },
         {
             title: 'Batismo',
             dataIndex: 'data_batismo',
-            render: v => `${v.split('T')[0].replace(TipoMascara.data.regex, TipoMascara.data.replace)}`
+            render: v => v && `${v.split('T')[0].replace(TipoMascara.data.regex, TipoMascara.data.replace)}`
         },
         {
             title: 'Privilégio',
             dataIndex: 'privilegio',
-            render: p => p.split(',').map(status => (
-                <Tag color={{
+            render: p => p.split(',').map((status, index) => (
+                <Tag key={index} color={{
                     'P': 'magenta',
                     'R': 'volcano',
                     'M': 'green',

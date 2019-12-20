@@ -46,7 +46,7 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
         const resPublicadores = await api.get(`publicadores`)
 
         if (resPublicadores) {
-            resPublicadores.data.map(pub => { publicadores.push({ value: pub._id, label: pub.nome }) })
+            resPublicadores.data.data.map(pub => { publicadores.push({ value: pub._id, label: pub.nome }) })
             setPublicadores(publicadores)
         }
     }

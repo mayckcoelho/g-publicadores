@@ -24,7 +24,7 @@ const DataTable = ({ recurso, columns, reload, handleReload }) => {
         const filters = params.filters
 
         for (let filter in filters) {
-            queryParams += `&${filter}[lk]=${filters[filter]}`
+            queryParams += `&${filter}=${filters[filter]}`
         }
 
         if (sortField && sortOrder)
@@ -33,12 +33,15 @@ const DataTable = ({ recurso, columns, reload, handleReload }) => {
         const response = await api.get(`${recurso}?limit=${limit}&offset=${offset}${queryParams}`)
 
         if (response) {
-            const pages = { ...pagination }
+            const pages = { ...params.pagination }
 
-            pages.total = parseInt(response.headers['x-total-count'])
+            pages.total = parseInt(response.data.total)
+
+            if (!pages.current)
+                pages.current = 1
 
             setLoading(false)
-            setData(response.data)
+            setData(response.data.data)
             setPagination(pages)
         }
     }
@@ -47,14 +50,13 @@ const DataTable = ({ recurso, columns, reload, handleReload }) => {
         const pager = { pagination }
         pager.current = pagination.current
 
-        setPagination(pager)
-
         buscarRecurso({
             results: pagination.pageSize,
             page: pagination.current,
             sortField: sorter.field,
             sortOrder: sorter.order,
-            filters: filters
+            filters: filters,
+            pagination
         })
     }
 
@@ -133,7 +135,7 @@ const DataTable = ({ recurso, columns, reload, handleReload }) => {
         <ConfigProvider renderEmpty={() => <Empty description="Sem dados para exibir" />} >
             <Table
                 columns={dataColumns}
-                rowKey={record => record.id}
+                rowKey={record => record._id}
                 dataSource={data}
                 pagination={pagination}
                 loading={loading}

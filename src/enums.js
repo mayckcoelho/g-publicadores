@@ -1,4 +1,5 @@
 export const TipoPrivilegio = [
+    { value: "P", label: "Publicador" },
     { value: "R", label: "Pioneiro" },
     { value: "M", label: "Missionário" },
     { value: "S", label: "Servo Ministerial" },

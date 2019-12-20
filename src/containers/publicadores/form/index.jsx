@@ -32,7 +32,7 @@ const FormPublicadores = ({ resetForm, values, setFieldValue, setValues, errors,
                     const newValues = {
                         ...response.data,
                         data_nascimentoM: moment(response.data.data_nascimento.split('T')[0]),
-                        data_batismoM: response.data.data_batismo ? moment(response.data.data_batismo.split('T')[0]) : ''
+                        data_batismoM: response.data.data_batismo ? moment(response.data.data_batismo.split('T')[0]) : null
                     }
                     setValues(newValues)
                 }
@@ -48,7 +48,7 @@ const FormPublicadores = ({ resetForm, values, setFieldValue, setValues, errors,
         const resGrupos = await api.get(`grupos`)
 
         if (resGrupos) {
-            resGrupos.data.map(grp => { grupos.push({ value: grp._id, label: grp.nome }) })
+            resGrupos.data.data.map(grp => { grupos.push({ value: grp._id, label: grp.nome }) })
             setGrupos(grupos)
         }
     }

@@ -65,7 +65,7 @@ const HandleLoginForm = withFormik({
             localStorage.setItem(consts.USER_TOKEN, token)
             localStorage.setItem(consts.USER_DATA, JSON.stringify(response.data.user))
 
-            history.push('/')
+            history.push('/publicadores')
         }
     },
 
