@@ -45,7 +45,9 @@ export const DatePickerMonth = ({ handleChange, handleBlur, field, ...props }) =
             onChange={onChange}
             format="MM/YYYY"
             onBlur={e => {
-                props.form.setFieldTouched(field.name, true);
+                if (props.form)
+                    props.form.setFieldTouched(field.name, true);
+                    
                 if (handleBlur)
                     handleBlur(e.target.value)
             }}

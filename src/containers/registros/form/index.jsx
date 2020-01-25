@@ -30,7 +30,7 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                 if (response) {
                     const newValues = {
                         ...response.data,
-                        mesAnoM: moment(response.data.mesAno, 'MM/YYYY')
+                        mesAnoM: moment(response.data.mesAno)
                     }
                     setValues(newValues)
                 }
@@ -121,20 +121,6 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                 </Form.Item>
                             </Col>
                             <Col xs={24} sm={12}>
-                                <Form.Item label="Horas"
-                                    validateStatus={(errors.horas && touched.horas) ? 'error' : ''}>
-                                    <Field
-                                        component={InputNumber}
-                                        name='horas'
-                                        placeholder='Horas'
-                                        handleChange={value => setFieldValue('horas', value)}
-                                    />
-                                    {(errors.horas && touched.horas) && <span style={{ color: "red" }}>{errors.horas}</span>}
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={30}>
-                            <Col xs={24} sm={12}>
                                 <Form.Item label="Publicações"
                                     validateStatus={(errors.publicacoes && touched.publicacoes) ? 'error' : ''}>
                                     <Field
@@ -146,6 +132,8 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                     {(errors.publicacoes && touched.publicacoes) && <span style={{ color: "red" }}>{errors.publicacoes}</span>}
                                 </Form.Item>
                             </Col>
+                        </Row>
+                        <Row gutter={30}>
                             <Col xs={24} sm={12}>
                                 <Form.Item label="Vídeos"
                                     validateStatus={(errors.videos && touched.videos) ? 'error' : ''}>
@@ -156,6 +144,18 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                         handleChange={value => setFieldValue('videos', value)}
                                     />
                                     {(errors.videos && touched.videos) && <span style={{ color: "red" }}>{errors.videos}</span>}
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} sm={12}>
+                                <Form.Item label="Horas"
+                                    validateStatus={(errors.horas && touched.horas) ? 'error' : ''}>
+                                    <Field
+                                        component={InputNumber}
+                                        name='horas'
+                                        placeholder='Horas'
+                                        handleChange={value => setFieldValue('horas', value)}
+                                    />
+                                    {(errors.horas && touched.horas) && <span style={{ color: "red" }}>{errors.horas}</span>}
                                 </Form.Item>
                             </Col>
                             <Col xs={24} sm={12}>
@@ -215,7 +215,7 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
 const HandleFormRegistros = withFormik({
     mapPropsToValues: () => ({
         mesAnoM: moment(),
-        mesAno: moment().format('MM/YYYY'),
+        mesAno: '',
         publicacoes: '0',
         videos: '0',
         horas: '0',

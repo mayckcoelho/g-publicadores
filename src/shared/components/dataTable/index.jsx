@@ -3,7 +3,7 @@ import api from '../../../services'
 
 import { Table, Input, Button, Icon, ConfigProvider, Empty } from 'antd'
 
-const DataTable = ({ recurso, columns, reload, handleReload }) => {
+const DataTable = ({ recurso, columns, reload, handleReload, filtros }) => {
 
     const [dataColumns, setDataColumns] = useState(columns)
     const [data, setData] = useState([])
@@ -28,8 +28,15 @@ const DataTable = ({ recurso, columns, reload, handleReload }) => {
         }
 
         if (sortField && sortOrder)
-            queryParams = `${queryParams}&order[${sortOrder === 'ascend' ? 'asc' : 'desc'}]=${sortField}`
+            queryParams += `&order[${sortOrder === 'ascend' ? 'asc' : 'desc'}]=${sortField}`
 
+        if (filtros) {
+            Object.entries(filtros).map(([key, value]) => {
+                queryParams += `&${key}=${value}`
+            })
+        }
+            
+        console.log(queryParams)
         const response = await api.get(`${recurso}?limit=${limit}&offset=${offset}${queryParams}`)
 
         if (response) {
