@@ -35,8 +35,7 @@ const DataTable = ({ recurso, columns, reload, handleReload, filtros }) => {
                 queryParams += `&${key}=${value}`
             })
         }
-            
-        console.log(queryParams)
+
         const response = await api.get(`${recurso}?limit=${limit}&offset=${offset}${queryParams}`)
 
         if (response) {

@@ -12,6 +12,7 @@ import { TipoPrivilegio } from '../../enums'
 import api from '../../services'
 import Select from '../../shared/form/Select'
 import moment from 'moment'
+import FileDownload from 'js-file-download'
 
 const { confirm } = Modal
 
@@ -117,6 +118,38 @@ const Registros = ({ history }) => {
         setFiltros(filtros)
 
         setReload(true)
+    }
+
+    async function download() {
+        const filtros = {}
+
+        if (filtroPublicador)
+            filtros['publicador'] = filtroPublicador
+
+        if (filtroPrivilegio)
+            filtros['privilegio'] = filtroPrivilegio
+
+        if (filtroGrupo)
+            filtros['grupo'] = filtroGrupo
+
+        if (filtroDateInicio)
+            filtros['inicio'] = filtroDateInicio.format('MM/YYYY')
+
+        if (filtroDateFim)
+            filtros['fim'] = filtroDateFim.format('MM/YYYY')
+
+        let queryParams = ''
+        if (filtros) {
+            Object.entries(filtros).map(([key, value]) => {
+                queryParams += `&${key}=${value}`
+            })
+        }
+
+        const resPublicadores = await api.get(`registros/download?offset=0${queryParams}`, { responseType: 'arraybuffer' })
+        if (resPublicadores) {
+            FileDownload(resPublicadores.data, 'RelatorioRegistros.xlsx')
+        }
+
     }
 
     async function getPublicadores() {
@@ -229,6 +262,7 @@ const Registros = ({ history }) => {
                 </Row>
                 <Row gutter={30}>
                     <Col xs={24} sm={24} style={{ display: 'flex', justifyContent: "flex-end" }}>
+                        <Button type="primary" style={{ marginRight: 15, border: 'none', backgroundColor: "#82e3ba"}} onClick={() => download()}>Download XLSX<Icon type="download" /></Button>
                         <Button style={{ marginRight: 15 }} type="danger" onClick={() => limparFiltros()}>Limpar<Icon type="delete" /></Button>
                         <Button type="primary" onClick={() => pesquisar()}>Pesquisar<Icon type="search" /></Button>
                     </Col>
