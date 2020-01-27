@@ -70,6 +70,10 @@ const Registros = ({ history }) => {
             width: '20%',
         },
         {
+            title: 'Observações',
+            dataIndex: 'obs',
+        },
+        {
             title: '',
             dataIndex: '',
             render: value => <TableIcon type={'edit'} onClick={() => setIdRegistro(value._id)} />,

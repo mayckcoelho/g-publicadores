@@ -189,7 +189,7 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                 <Form.Item label="Observação">
                                     <Field
                                         component={InputTextArea}
-                                        name='obj'
+                                        name='obs'
                                         rows={3}
                                         maxLength={200}
                                         placeholder='Observação'
