@@ -8,6 +8,7 @@ import DataTable from '../../shared/components/dataTable'
 import { TableIcon } from '../../shared/styles/index'
 import { TipoMascara } from '../../enums'
 import api from '../../services'
+import consts from '../../consts'
 
 const { confirm } = Modal
 
@@ -15,6 +16,8 @@ const Publicadores = ({ history }) => {
     const [reload, setReload] = useState(false);
     const [cadastroVisible, setCadastroVisible] = useState(false);
     const [idPublicador, setIdPublicador] = useState(null);
+
+    const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email
 
     const columns = [
         {
@@ -56,14 +59,16 @@ const Publicadores = ({ history }) => {
             dataIndex: '',
             render: value => <TableIcon type={'edit'} onClick={() => setIdPublicador(value._id)} />,
             fixed: 'right',
-            width: '1%'
+            width: '1%',
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
         },
         {
             title: '',
             dataIndex: '',
             render: value => <TableIcon theme="twoTone" twoToneColor="#ff0000" type={'delete'} onClick={() => excluirPublicador(value._id)} />,
             fixed: 'right',
-            width: 1
+            width: 1,
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
         },
     ]
 
@@ -91,7 +96,8 @@ const Publicadores = ({ history }) => {
         <ContentTransparent>
             <Header>
                 <PageHeader style={{ padding: 0 }} title="Publicadores" />
-                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo publicador<Icon type="arrow-right" /></Button>
+                {consts.ALLOWED_EMAILS.includes(user_email) &&
+                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo publicador<Icon type="arrow-right" /></Button>}
             </Header>
             <ContentLight>
                 <DataTable 

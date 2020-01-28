@@ -7,6 +7,7 @@ import { ContentLight, ContentTransparent } from '../../shared/components/Conten
 import DataTable from '../../shared/components/dataTable'
 import { TableIcon } from '../../shared/styles/index'
 import api from '../../services'
+import consts from '../../consts'
 
 const { confirm } = Modal
 
@@ -14,6 +15,8 @@ const Grupos = ({ history }) => {
     const [reload, setReload] = useState(false);
     const [cadastroVisible, setCadastroVisible] = useState(false);
     const [idGrupo, setIdGrupo] = useState(null);
+
+    const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email
 
     const columns = [
         {
@@ -31,14 +34,16 @@ const Grupos = ({ history }) => {
             dataIndex: '',
             render: value => <TableIcon type={'edit'} onClick={() => setIdGrupo(value._id)} />,
             fixed: 'right',
-            width: '1%'
+            width: '1%',
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
         },
         {
             title: '',
             dataIndex: '',
             render: value => <TableIcon theme="twoTone" twoToneColor="#ff0000" type={'delete'} onClick={() => excluirGrupo(value._id) } />,
             fixed: 'right',
-            width: 1
+            width: 1,
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
         },
     ]
 
@@ -66,7 +71,8 @@ const Grupos = ({ history }) => {
         <ContentTransparent>
             <Header>
                 <PageHeader style={{ padding: 0 }} title="Grupos" />
-                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo grupo<Icon type="arrow-right" /></Button>
+                {consts.ALLOWED_EMAILS.includes(user_email) &&
+                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo grupo<Icon type="arrow-right" /></Button>}
             </Header>
             <ContentLight>
                 <DataTable 

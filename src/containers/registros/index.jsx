@@ -13,6 +13,7 @@ import api from '../../services'
 import Select from '../../shared/form/Select'
 import moment from 'moment'
 import FileDownload from 'js-file-download'
+import consts from '../../consts'
 
 const { confirm } = Modal
 
@@ -31,6 +32,7 @@ const Registros = ({ history }) => {
     const [filtroDateInicio, setFiltroDateInicio] = useState(null)
     const [filtroDateFim, setFiltroDateFim] = useState(null)
 
+    const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email
 
     const columns = [
         {
@@ -78,14 +80,16 @@ const Registros = ({ history }) => {
             dataIndex: '',
             render: value => <TableIcon type={'edit'} onClick={() => setIdRegistro(value._id)} />,
             fixed: 'right',
-            width: '1%'
+            width: '1%',
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
         },
         {
             title: '',
             dataIndex: '',
             render: value => <TableIcon theme="twoTone" twoToneColor="#ff0000" type={'delete'} onClick={() => excluirRegistro(value._id)} />,
             fixed: 'right',
-            width: 1
+            width: 1,
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
         },
     ]
 
@@ -206,7 +210,8 @@ const Registros = ({ history }) => {
         <ContentTransparent>
             <Header>
                 <PageHeader style={{ padding: 0 }} title="Registros" />
-                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo registro<Icon type="arrow-right" /></Button>
+                {consts.ALLOWED_EMAILS.includes(user_email) &&
+                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo registro<Icon type="arrow-right" /></Button>}
             </Header>
             <ContentLight style={{ marginBottom: 15 }}>
                 <h1 style={{ fontSize: 18 }}>Filtros</h1>
