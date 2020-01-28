@@ -6,7 +6,7 @@ import FormUsuarios from './form'
 import { ContentLight, ContentTransparent } from '../../shared/components/Content'
 import DataTable from '../../shared/components/dataTable'
 import { TableIcon } from '../../shared/styles/index'
-import api from '../../services'
+import consts from '../../consts'
 
 const { confirm } = Modal
 
