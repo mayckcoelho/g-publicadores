@@ -15,6 +15,8 @@ const Usuarios = () => {
     const [cadastroVisible, setCadastroVisible] = useState(false);
     const [idUser, setIdUser] = useState(null);
 
+    const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email
+
     const columns = [
         {
             title: 'Nome',
@@ -32,7 +34,8 @@ const Usuarios = () => {
             dataIndex: '',
             render: value => <TableIcon type={'edit'} onClick={() => setIdUser(value._id)} />,
             fixed: 'right',
-            width: '1%'
+            width: '1%',
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
         }
     ]
 
@@ -40,7 +43,8 @@ const Usuarios = () => {
         <ContentTransparent>    
             <Header>
                 <PageHeader style={{ padding: 0 }} title="Usuários" />
-                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo usuário<Icon type="arrow-right" /></Button>
+                {consts.ALLOWED_EMAILS.includes(user_email) &&
+                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo usuário<Icon type="arrow-right" /></Button>}
             </Header>
             <ContentLight>
                 <DataTable 

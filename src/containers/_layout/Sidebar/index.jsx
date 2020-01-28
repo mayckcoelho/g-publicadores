@@ -21,18 +21,14 @@ const Sidebar = function ({ collapse, location }) {
                 theme="light"
                 style={{ marginTop: '80px', borderRight: 0 }} >
 
-                {sitemap.map((item) => {
-                    return (
-                        <>
-                            <MenuItem key={item.resource}>
-                                <Link to={item.route}>
-                                    <IconSidebar type={item.icon} />
-                                    <span>{item.title}</span>
-                                </Link>
-                            </MenuItem>
-                        </>
+                {sitemap.map((item) => (
+                        <MenuItem key={item.resource}>
+                            <Link to={item.route}>
+                                <IconSidebar type={item.icon} />
+                                <span>{item.title}</span>
+                            </Link>
+                        </MenuItem>
                     )
-                }
                 )}
             </Menu>
         </Sider>
