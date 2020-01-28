@@ -24,13 +24,12 @@ const Sidebar = function ({ collapse, location }) {
                 {sitemap.map((item) => {
                     return (
                         <>
-                            {(!consts.ALLOWED_EMAILS.includes(user_email) && item.resource === "usuarios") &&
                             <MenuItem key={item.resource}>
                                 <Link to={item.route}>
                                     <IconSidebar type={item.icon} />
                                     <span>{item.title}</span>
                                 </Link>
-                            </MenuItem>}
+                            </MenuItem>
                         </>
                     )
                 }
