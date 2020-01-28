@@ -12,7 +12,7 @@ const { Sider } = Layout
 const Sidebar = function ({ collapse, location }) {
     const resource = location.pathname.split('/')[1];
     const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email
-    
+
     return (
         <Sider width={250} theme="light" trigger={null} collapsible collapsed={collapse}>
             <Menu
@@ -24,7 +24,7 @@ const Sidebar = function ({ collapse, location }) {
                 {sitemap.map((item) => {
                     return (
                         <>
-                            {consts.ALLOWED_EMAILS.includes(user_email) &&
+                            {(consts.ALLOWED_EMAILS.includes(user_email) && item.resource === "usuarios") &&
                             <MenuItem key={item.resource}>
                                 <Link to={item.route}>
                                     <IconSidebar type={item.icon} />
