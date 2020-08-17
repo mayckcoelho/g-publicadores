@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-
 import { Button, Icon, PageHeader, Modal, message, Tag } from 'antd'
+import FileDownload from 'js-file-download'
+
 import { Header } from '../../shared/styles'
 import FormPublicadores from './form'
 import { ContentLight, ContentTransparent } from '../../shared/components/Content'
@@ -41,18 +42,26 @@ const Publicadores = ({ history }) => {
                     'M': 'green',
                     'S': 'geekblue',
                     'A': 'purple'
-                 }[status]}>{{
+                }[status]}>{{
                     'P': 'Publicador',
                     'R': 'Pioneiro',
                     'M': 'Missionário',
                     'S': 'Servo Ministerial',
-                    'A': 'Ancião' 
-                 }[status]}</Tag>)),
+                    'A': 'Ancião'
+                }[status]}</Tag>)),
         },
         {
             title: 'Status',
             dataIndex: 'status',
-            render: status => <Tag color={status === 'A' ? 'green' : 'red'}>{status === 'A' ? 'Ativo' : 'Inativo'}</Tag>,
+            render: status => <Tag color={{
+                'A': 'green',
+                'I': 'red',
+                'M': 'geekblue'
+            }[status]}>{{
+                'A': 'Ativo',
+                'I': 'Inativo',
+                'M': 'Mudou'
+            }[status]}</Tag>,
         },
         {
             title: '',
@@ -66,6 +75,14 @@ const Publicadores = ({ history }) => {
             title: '',
             dataIndex: '',
             render: value => <TableIcon theme="twoTone" twoToneColor="#ff0000" type={'delete'} onClick={() => excluirPublicador(value._id)} />,
+            fixed: 'right',
+            width: 1,
+            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
+        },
+        {
+            title: '',
+            dataIndex: '',
+            render: value => <TableIcon type={'download'} onClick={() => gerarCartao(value._id, value.nome)} />,
             fixed: 'right',
             width: 1,
             hidden: !consts.ALLOWED_EMAILS.includes(user_email)
@@ -92,19 +109,26 @@ const Publicadores = ({ history }) => {
         })
     }
 
+    async function gerarCartao(id, nome) {
+        const resPublicadores = await api.get(`publicadores/cartao/${id}`, { responseType: 'arraybuffer' })
+        if (resPublicadores) {
+            FileDownload(resPublicadores.data, `Cartao ${nome}.xlsx`)
+        }
+    }
+
     return (
         <ContentTransparent>
             <Header>
                 <PageHeader style={{ padding: 0 }} title="Publicadores" />
                 {consts.ALLOWED_EMAILS.includes(user_email) &&
-                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo publicador<Icon type="arrow-right" /></Button>}
+                    <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo publicador<Icon type="arrow-right" /></Button>}
             </Header>
             <ContentLight>
-                <DataTable 
+                <DataTable
                     reload={reload}
                     handleReload={(r) => setReload(r)}
                     columns={columns}
-                    recurso="publicadores"/>
+                    recurso="publicadores" />
             </ContentLight>
             <FormPublicadores
                 publicador={idPublicador}
@@ -113,7 +137,7 @@ const Publicadores = ({ history }) => {
                     setReload(reload)
                     setIdPublicador(recurso)
                 }}
-                visible={cadastroVisible}/>
+                visible={cadastroVisible} />
         </ContentTransparent>
     )
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-import { Button, Icon, PageHeader, Modal, message, Row, Col } from 'antd'
+import { Button, Icon, PageHeader, Modal, message, Row, Col, Checkbox } from 'antd'
 import { Header } from '../../shared/styles'
 import FormRegistros from './form'
 import { ContentLight, ContentTransparent } from '../../shared/components/Content'
@@ -28,6 +28,7 @@ const Registros = ({ history }) => {
     const [filtros, setFiltros] = useState({})
     const [filtroPublicador, setFiltroPublicador] = useState(null)
     const [filtroPrivilegio, setFiltroPrivilegio] = useState(null)
+    const [filtroMudou, setFiltroMudou] = useState(false)
     const [filtroGrupo, setFiltroGrupo] = useState(null)
     const [filtroDateInicio, setFiltroDateInicio] = useState(null)
     const [filtroDateFim, setFiltroDateFim] = useState(null)
@@ -57,9 +58,10 @@ const Registros = ({ history }) => {
             width: '20%',
         },
         {
-            title: 'Horas',
-            dataIndex: 'horas',
+            title: 'Tempo',
+            dataIndex: '',
             width: '20%',
+            render: v => `${v.horas}${v.valorTempo === "H" ? 'h' : 'm'}`
         },
         {
             title: 'Revisitas',
@@ -96,11 +98,12 @@ const Registros = ({ history }) => {
     function limparFiltros() {
         setFiltroPublicador(null)
         setFiltroPrivilegio(null)
+        setFiltroMudou(false)
         setFiltroGrupo(null)
         setFiltroDateInicio(null)
         setFiltroDateFim(null)
 
-        setFiltros({ })
+        setFiltros({})
 
         setReload(true)
     }
@@ -113,6 +116,9 @@ const Registros = ({ history }) => {
 
         if (filtroPrivilegio)
             filtros['privilegio'] = filtroPrivilegio
+
+        if (filtroMudou)
+            filtros['mudou'] = filtroMudou
 
         if (filtroGrupo)
             filtros['grupo'] = filtroGrupo
@@ -157,7 +163,6 @@ const Registros = ({ history }) => {
         if (resPublicadores) {
             FileDownload(resPublicadores.data, 'RelatorioRegistros.xlsx')
         }
-
     }
 
     async function getPublicadores() {
@@ -211,7 +216,7 @@ const Registros = ({ history }) => {
             <Header>
                 <PageHeader style={{ padding: 0 }} title="Registros" />
                 {consts.ALLOWED_EMAILS.includes(user_email) &&
-                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo registro<Icon type="arrow-right" /></Button>}
+                    <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo registro<Icon type="arrow-right" /></Button>}
             </Header>
             <ContentLight style={{ marginBottom: 15 }}>
                 <h1 style={{ fontSize: 18 }}>Filtros</h1>
@@ -227,7 +232,7 @@ const Registros = ({ history }) => {
                             style={{ width: '100%' }}
                         />
                     </Col>
-                    <Col xs={24} sm={12}>
+                    <Col xs={24} sm={6}>
                         Privilégios
                         <Select
                             placeholder='Selecione um privilégio'
@@ -236,6 +241,13 @@ const Registros = ({ history }) => {
                             onChange={value => setFiltroPrivilegio(value)}
                             style={{ width: '100%' }}
                         />
+                    </Col>
+                    <Col xs={24} sm={6}>
+                        Incluir publicadores que mudaram?
+                        <Checkbox onChange={e => setFiltroMudou(e.target.checked)}
+                            style={{ width: '100%', marginTop: 5 }}>
+                            {filtroMudou ? "Sim" : "Não"}
+                        </Checkbox>
                     </Col>
                 </Row>
                 <Row gutter={30} style={{ marginBottom: 15 }}>
@@ -271,7 +283,7 @@ const Registros = ({ history }) => {
                 </Row>
                 <Row gutter={30}>
                     <Col xs={24} sm={24} style={{ display: 'flex', justifyContent: "flex-end" }}>
-                        <Button type="primary" style={{ marginRight: 15, border: 'none', backgroundColor: "#82e3ba"}} onClick={() => download()}>Download XLSX<Icon type="download" /></Button>
+                        <Button type="primary" style={{ marginRight: 15, border: 'none', backgroundColor: "#82e3ba" }} onClick={() => download()}>Download XLSX<Icon type="download" /></Button>
                         <Button style={{ marginRight: 15 }} type="danger" onClick={() => limparFiltros()}>Limpar<Icon type="delete" /></Button>
                         <Button type="primary" onClick={() => pesquisar()}>Pesquisar<Icon type="search" /></Button>
                     </Col>

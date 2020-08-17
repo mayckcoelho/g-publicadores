@@ -113,7 +113,8 @@ const FormPublicadores = ({ resetForm, values, setFieldValue, setValues, errors,
                                         }}
                                         buttonStyle="solid">
                                         <Radio.Button value="A" >Ativo</Radio.Button>
-                                        <Radio.Button value="I">Invativo</Radio.Button>
+                                        <Radio.Button value="I">Inativo</Radio.Button>
+                                        <Radio.Button value="M">Mudou</Radio.Button>
                                     </Radio.Group>
                                 </Form.Item>
                             </Col>
@@ -135,7 +136,7 @@ const FormPublicadores = ({ resetForm, values, setFieldValue, setValues, errors,
                                 </Form.Item>
                             </Col>
                             <Col xs={24} sm={12}>
-                                <Form.Item label="Data Bastismo">
+                                <Form.Item label="Data Batismo">
                                     <Field
                                         component={DatePickerSimple}
                                         name='data_batismoM'
@@ -232,17 +233,17 @@ const HandleFormPublicadores = withFormik({
         grupo: 'O',
         status: 'A',
         nome: '',
-        data_nascimento: '',
+        data_nascimento: moment().format(),
         data_nascimentoM: moment(),
         data_batismo: '',
-        data_batismoM: moment(),
+        data_batismoM: null,
         id_grupo: '',
         privilegio: 'P'
     }),
     validationSchema: SchemaValidate,
 
     handleSubmit: async (values, { props: { publicador, handleVisible }, resetForm }) => {
-        //console.log(JSON.stringify(values));
+        // console.log(JSON.stringify(values));
         confirm({
             title: 'Confirmar',
             content: `Deseja realmente salvar ${!publicador ? "este" : "a edição deste"} Publicador?`,

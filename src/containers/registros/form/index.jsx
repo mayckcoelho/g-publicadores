@@ -103,8 +103,6 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                     {(errors.publicador && touched.publicador) && <span style={{ color: "red" }}>{errors.publicador}</span>}
                                 </Form.Item>
                             </Col>
-                        </Row>
-                        <Row gutter={30}>
                             <Col xs={24} sm={12}>
                                 <Form.Item label="Mês/Ano"
                                     validateStatus={(errors.mesAnoM && touched.mesAnoM) ? 'error' : ''}>
@@ -120,6 +118,8 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                     {(errors.mesAnoM && touched.mesAnoM) && <span style={{ color: "red" }}>{errors.mesAnoM}</span>}
                                 </Form.Item>
                             </Col>
+                        </Row>
+                        <Row gutter={30}>
                             <Col xs={24} sm={12}>
                                 <Form.Item label="Publicações"
                                     validateStatus={(errors.publicacoes && touched.publicacoes) ? 'error' : ''}>
@@ -132,8 +132,6 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                     {(errors.publicacoes && touched.publicacoes) && <span style={{ color: "red" }}>{errors.publicacoes}</span>}
                                 </Form.Item>
                             </Col>
-                        </Row>
-                        <Row gutter={30}>
                             <Col xs={24} sm={12}>
                                 <Form.Item label="Vídeos"
                                     validateStatus={(errors.videos && touched.videos) ? 'error' : ''}>
@@ -146,13 +144,29 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                                     {(errors.videos && touched.videos) && <span style={{ color: "red" }}>{errors.videos}</span>}
                                 </Form.Item>
                             </Col>
+                        </Row>
+                        <Row gutter={30}>
                             <Col xs={24} sm={12}>
-                                <Form.Item label="Horas"
+                                <Form.Item label="Registro em">
+                                    <Radio.Group
+                                        name="valorTempo"
+                                        value={values.valorTempo}
+                                        onChange={e => {
+                                            setFieldValue('valorTempo', e.target.value)
+                                        }}
+                                        buttonStyle="solid">
+                                        <Radio.Button value="H" >Horas</Radio.Button>
+                                        <Radio.Button value="M">Minutos</Radio.Button>
+                                    </Radio.Group>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} sm={12}>
+                                <Form.Item label="Tempo"
                                     validateStatus={(errors.horas && touched.horas) ? 'error' : ''}>
                                     <Field
                                         component={InputNumber}
                                         name='horas'
-                                        placeholder='Horas'
+                                        placeholder='Tempo'
                                         handleChange={value => setFieldValue('horas', value)}
                                     />
                                     {(errors.horas && touched.horas) && <span style={{ color: "red" }}>{errors.horas}</span>}
@@ -201,7 +215,7 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
                         <Row>
                             <Col xs={24} sm={12}>
                                 <Form.Item style={{ marginBottom: 0 }}>
-                                    <Button type="primary" htmlType="submit">Salvar Publicador <Icon type="arrow-right" /></Button>
+                                    <Button type="primary" htmlType="submit">Salvar Registro <Icon type="arrow-right" /></Button>
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -215,9 +229,10 @@ const FormRegistros = ({ resetForm, values, setFieldValue, setValues, errors, to
 const HandleFormRegistros = withFormik({
     mapPropsToValues: () => ({
         mesAnoM: moment(),
-        mesAno: '',
+        mesAno: moment().format(),
         publicacoes: '0',
         videos: '0',
+        valorTempo: 'H',
         horas: '0',
         revisitas: '0',
         estudos: '0',
@@ -227,6 +242,7 @@ const HandleFormRegistros = withFormik({
     validationSchema: SchemaValidate,
 
     handleSubmit: async (values, { props: { registro, handleVisible }, resetForm }) => {
+        console.log(JSON.stringify(values))
         confirm({
             title: 'Confirmar',
             content: `Deseja realmente salvar ${!registro ? "este" : "a edição deste"} Registro?`,
