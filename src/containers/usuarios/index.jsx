@@ -1,68 +1,79 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 
-import { Button, Icon, PageHeader, Modal, message } from 'antd'
-import { Header, Title } from '../../shared/styles'
-import FormUsuarios from './form'
-import { ContentLight, ContentTransparent } from '../../shared/components/Content'
-import DataTable from '../../shared/components/dataTable'
-import { TableIcon } from '../../shared/styles/index'
-import consts from '../../consts'
+import { Button, Icon, PageHeader, Modal, message } from "antd";
+import { Header, Title } from "../../shared/styles";
+import FormUsuarios from "./form";
+import {
+  ContentLight,
+  ContentTransparent,
+} from "../../shared/components/Content";
+import DataTable from "../../shared/components/dataTable";
+import { TableIcon } from "../../shared/styles/index";
+import consts from "../../consts";
 
-const { confirm } = Modal
+const { confirm } = Modal;
 
 const Usuarios = () => {
-    const [reload, setReload] = useState(false);
-    const [cadastroVisible, setCadastroVisible] = useState(false);
-    const [idUser, setIdUser] = useState(null);
+  const [reload, setReload] = useState(false);
+  const [cadastroVisible, setCadastroVisible] = useState(false);
+  const [idUser, setIdUser] = useState(null);
 
-    const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email
+  const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email;
 
-    const columns = [
-        {
-            title: 'Nome',
-            dataIndex: 'name',
-            width: '20%',
-            filterSearch: true
-        },
-        {
-            title: 'E-mail',
-            dataIndex: 'email',
-            filterSearch: true
-        },
-        {
-            title: '',
-            dataIndex: '',
-            render: value => <TableIcon type={'edit'} onClick={() => setIdUser(value._id)} />,
-            fixed: 'right',
-            width: '1%',
-            hidden: !consts.ALLOWED_EMAILS.includes(user_email)
-        }
-    ]
+  const columns = [
+    {
+      title: "Nome",
+      dataIndex: "name",
+      width: "20%",
+      filterSearch: true,
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      filterSearch: true,
+    },
+    {
+      title: "",
+      dataIndex: "",
+      render: (value) => (
+        <TableIcon type={"edit"} onClick={() => setIdUser(value._id)} />
+      ),
+      fixed: "right",
+      width: "1%",
+      hidden: !consts.ALLOWED_EMAILS.includes(user_email),
+    },
+  ];
 
-    return (
-        <ContentTransparent>    
-            <Header>
-                <PageHeader style={{ padding: 0 }} title="Usuários" />
-                {consts.ALLOWED_EMAILS.includes(user_email) &&
-                <Button type="primary" onClick={() => setCadastroVisible(true)}>Novo usuário<Icon type="arrow-right" /></Button>}
-            </Header>
-            <ContentLight>
-                <DataTable 
-                    reload={reload}
-                    handleReload={(r) => setReload(r)}
-                    columns={columns}
-                    recurso="users"/>
-            </ContentLight>
-            <FormUsuarios
-                usuario={idUser}
-                handleVisible={(status, reload, recurso) => {
-                    setCadastroVisible(status)
-                    setReload(reload)
-                    setIdUser(recurso)
-                }}
-                visible={cadastroVisible}/>
-        </ContentTransparent>
-    )
-}
+  return (
+    <ContentTransparent>
+      <Header>
+        <PageHeader style={{ padding: 0 }} title="Usuários" />
+        {consts.ALLOWED_EMAILS.includes(user_email) && (
+          <Button type="primary" onClick={() => setCadastroVisible(true)}>
+            Novo usuário
+            <Icon type="arrow-right" />
+          </Button>
+        )}
+      </Header>
+      <ContentLight>
+        <DataTable
+          reload={reload}
+          handleReload={(r) => setReload(r)}
+          columns={columns}
+          recurso="users"
+        />
+      </ContentLight>
+      <FormUsuarios
+        usuario={idUser}
+        handleVisible={(status, reload, recurso) => {
+          setCadastroVisible(status);
+          setReload(reload);
+          setIdUser(recurso);
+        }}
+        visible={cadastroVisible}
+      />
+    </ContentTransparent>
+  );
+};
 
-export default Usuarios
+export default Usuarios;
