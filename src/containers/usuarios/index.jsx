@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-import { Button, Icon, PageHeader, Modal, message } from "antd";
-import { Header, Title } from "../../shared/styles";
+import { Button, Icon, PageHeader } from "antd";
+import { Header } from "../../shared/styles";
 import FormUsuarios from "./form";
 import {
   ContentLight,
@@ -10,8 +10,6 @@ import {
 import DataTable from "../../shared/components/dataTable";
 import { TableIcon } from "../../shared/styles/index";
 import consts from "../../consts";
-
-const { confirm } = Modal;
 
 const Usuarios = () => {
   const [reload, setReload] = useState(false);
@@ -36,7 +34,7 @@ const Usuarios = () => {
       title: "",
       dataIndex: "",
       render: (value) => (
-        <TableIcon type={"edit"} onClick={() => setIdUser(value._id)} />
+        <TableIcon type={"edit"} onClick={() => setIdUser(value.id)} />
       ),
       fixed: "right",
       width: "1%",
