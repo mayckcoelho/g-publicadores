@@ -21,7 +21,7 @@ const Publicadores = ({ history }) => {
   const [cadastroVisible, setCadastroVisible] = useState(false);
   const [idPublicador, setIdPublicador] = useState(null);
 
-  const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email;
+  const user_access = JSON.parse(localStorage.getItem(consts.USER_DATA)).access;
 
   const columns = [
     {
@@ -99,7 +99,7 @@ const Publicadores = ({ history }) => {
       ),
       fixed: "right",
       width: "1%",
-      hidden: !consts.ALLOWED_EMAILS.includes(user_email),
+      hidden: user_access === "C",
     },
     {
       title: "",
@@ -114,7 +114,7 @@ const Publicadores = ({ history }) => {
       ),
       fixed: "right",
       width: 1,
-      hidden: !consts.ALLOWED_EMAILS.includes(user_email),
+      hidden: user_access === "C",
     },
     {
       title: "",
@@ -127,7 +127,7 @@ const Publicadores = ({ history }) => {
       ),
       fixed: "right",
       width: 1,
-      hidden: !consts.ALLOWED_EMAILS.includes(user_email),
+      hidden: user_access === "C",
     },
   ];
 
@@ -165,7 +165,7 @@ const Publicadores = ({ history }) => {
     <ContentTransparent>
       <Header>
         <PageHeader style={{ padding: 0 }} title="Publicadores" />
-        {consts.ALLOWED_EMAILS.includes(user_email) && (
+        {user_access === "A" && (
           <Button type="primary" onClick={() => setCadastroVisible(true)}>
             Novo publicador
             <Icon type="arrow-right" />

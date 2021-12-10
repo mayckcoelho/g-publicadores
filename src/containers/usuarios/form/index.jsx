@@ -18,6 +18,7 @@ import {
   Modal,
   Drawer,
   message,
+  Radio,
 } from "antd";
 import { useFormik } from "formik";
 import { Header } from "../../../shared/styles";
@@ -36,6 +37,7 @@ const FormUsuarios = ({ reload }, ref) => {
     initialValues: usuario || {
       name: "",
       email: "",
+      access: "C",
       password: "",
       passwordConfirm: "",
     },
@@ -57,6 +59,7 @@ const FormUsuarios = ({ reload }, ref) => {
             const data = {
               name: values.name,
               email: values.email,
+              access: values.access,
             };
 
             if (method === "post") {
@@ -180,6 +183,21 @@ const FormUsuarios = ({ reload }, ref) => {
                   {formik.errors.email && formik.touched.email && (
                     <span style={{ color: "red" }}>{formik.errors.email}</span>
                   )}
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={30}>
+              <Col xs={24} sm={12}>
+                <Form.Item label="Acesso">
+                  <Radio.Group
+                    name="access"
+                    value={formik.values.access}
+                    onChange={formik.handleChange}
+                    buttonStyle="solid"
+                  >
+                    <Radio.Button value="C">Consulta</Radio.Button>
+                    <Radio.Button value="A">Administrador</Radio.Button>
+                  </Radio.Group>
                 </Form.Item>
               </Col>
             </Row>

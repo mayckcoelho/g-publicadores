@@ -15,7 +15,7 @@ const Usuarios = () => {
   const dataTable = useRef(null);
   const form = useRef(null);
 
-  const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email;
+  const user_access = JSON.parse(localStorage.getItem(consts.USER_DATA)).access;
 
   const columns = [
     {
@@ -40,7 +40,7 @@ const Usuarios = () => {
       ),
       fixed: "right",
       width: "1%",
-      hidden: !consts.ALLOWED_EMAILS.includes(user_email),
+      hidden: user_access === "C",
     },
   ];
 
@@ -48,7 +48,7 @@ const Usuarios = () => {
     <ContentTransparent>
       <Header>
         <PageHeader style={{ padding: 0 }} title="Usuários" />
-        {consts.ALLOWED_EMAILS.includes(user_email) && (
+        {user_access === "A" && (
           <Button type="primary" onClick={() => form.current.openDrawer(null)}>
             Novo usuário
             <Icon type="arrow-right" />

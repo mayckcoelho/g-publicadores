@@ -44,7 +44,7 @@ const Registros = ({ history }) => {
   const [filtroDateInicio, setFiltroDateInicio] = useState(null);
   const [filtroDateFim, setFiltroDateFim] = useState(null);
 
-  const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email;
+  const user_access = JSON.parse(localStorage.getItem(consts.USER_DATA)).access;
 
   const columns = [
     {
@@ -99,7 +99,7 @@ const Registros = ({ history }) => {
       ),
       fixed: "right",
       width: "1%",
-      hidden: !consts.ALLOWED_EMAILS.includes(user_email),
+      hidden: user_access === "C",
     },
     {
       title: "",
@@ -114,7 +114,7 @@ const Registros = ({ history }) => {
       ),
       fixed: "right",
       width: 1,
-      hidden: !consts.ALLOWED_EMAILS.includes(user_email),
+      hidden: user_access === "C",
     },
   ];
 
@@ -237,7 +237,7 @@ const Registros = ({ history }) => {
     <ContentTransparent>
       <Header>
         <PageHeader style={{ padding: 0 }} title="Registros" />
-        {consts.ALLOWED_EMAILS.includes(user_email) && (
+        {user_access === "A" && (
           <Button type="primary" onClick={() => setCadastroVisible(true)}>
             Novo registro
             <Icon type="arrow-right" />

@@ -9,7 +9,6 @@ import { useImperativeHandle } from "react";
 const DataTable = ({ recurso, columns, filtros }, ref) => {
   const [dataColumns, setDataColumns] = useState(columns);
   const [data, setData] = useState([]);
-  const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const searchInput = useRef(null);
@@ -19,9 +18,6 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
       setLoading(() => true);
 
       let queryParams = "";
-
-      const limit = params.results || 10;
-      const offset = (params.page - 1) * limit || 0;
       const sortField = params.sortField;
       const sortOrder = params.sortOrder;
       const filters = params.filters;
@@ -41,20 +37,11 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
         });
       }
 
-      const response = await api.get(
-        `${recurso}?limit=${limit}&offset=${offset}${queryParams}`
-      );
+      const response = await api.get(`${recurso}?${queryParams}`);
 
       if (response) {
-        const pages = { ...params.pagination };
-
-        pages.total = parseInt(response.data.total);
-
-        if (!pages.current) pages.current = 1;
-
         setLoading(() => false);
         setData(response.data.data);
-        setPagination(pages);
       }
     },
     [filtros, recurso]
@@ -66,17 +53,11 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
     };
   });
 
-  function handleTableChange(pagination, filters, sorter) {
-    const pager = { pagination };
-    pager.current = pagination.current;
-
+  function handleTableChange(filters, sorter) {
     buscarRecurso({
-      results: pagination.pageSize,
-      page: pagination.current,
       sortField: sorter.field,
       sortOrder: sorter.order,
       filters: filters,
-      pagination,
     });
   }
 
@@ -173,8 +154,8 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
         columns={dataColumns}
         rowKey={(record) => record.id}
         dataSource={data}
-        pagination={pagination}
         loading={loading}
+        pagination={{ position: [{ bottom: "none" }] }}
         onChange={handleTableChange}
         scroll={{ x: true }}
         tableLayout="fixed"
