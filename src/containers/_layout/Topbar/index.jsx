@@ -45,7 +45,7 @@ const Topbar = ({ toggleCollapseMenu }) => {
       <SectionFlex>
         <IconMenuFold
           type={collapsed ? "menu-unfold" : "menu-fold"}
-          onClick={() => toggleCollapsed()}
+          onClick={toggleCollapsed}
         />
 
         <Image src={Logo} alt="Logo Azymus" />

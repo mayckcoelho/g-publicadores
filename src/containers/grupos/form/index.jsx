@@ -122,7 +122,7 @@ const FormGrupos = ({ reload }, ref) => {
       width="45%"
       placement="right"
       closable={false}
-      onClose={() => closeDrawer()}
+      onClose={closeDrawer}
       visible={visible}
     >
       <Header>

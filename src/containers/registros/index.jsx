@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 
 import {
   Button,
@@ -28,11 +28,7 @@ import consts from "../../consts";
 
 const { confirm } = Modal;
 
-const Registros = ({ history }) => {
-  const [reload, setReload] = useState(false);
-  const [cadastroVisible, setCadastroVisible] = useState(false);
-  const [idRegistro, setIdRegistro] = useState(null);
-
+const Registros = () => {
   const [publicadores, setPublicadores] = useState([]);
   const [grupos, setGrupos] = useState([]);
 
@@ -43,6 +39,9 @@ const Registros = ({ history }) => {
   const [filtroGrupo, setFiltroGrupo] = useState(null);
   const [filtroDateInicio, setFiltroDateInicio] = useState(null);
   const [filtroDateFim, setFiltroDateFim] = useState(null);
+
+  const dataTable = useRef(null);
+  const form = useRef(null);
 
   const user_access = JSON.parse(localStorage.getItem(consts.USER_DATA)).access;
 
@@ -62,22 +61,6 @@ const Registros = ({ history }) => {
           .replace(TipoMascara.mesAno.regex, TipoMascara.mesAno.replace)}`,
     },
     {
-      title: "Publicações",
-      dataIndex: "publishers",
-      width: "20%",
-    },
-    {
-      title: "Vídeos",
-      dataIndex: "videos",
-      width: "20%",
-    },
-    {
-      title: "Tempo",
-      dataIndex: "",
-      width: "20%",
-      render: (v) => `${v.hours}${v.timeValue === "H" ? "h" : "m"}`,
-    },
-    {
       title: "Revisitas",
       dataIndex: "revisits",
       width: "20%",
@@ -88,6 +71,12 @@ const Registros = ({ history }) => {
       width: "20%",
     },
     {
+      title: "Tempo",
+      dataIndex: "",
+      width: "20%",
+      render: (v) => `${v.hours}${v.timeValue === "H" ? "h" : "m"}`,
+    },
+    {
       title: "Observações",
       dataIndex: "obs",
     },
@@ -95,7 +84,10 @@ const Registros = ({ history }) => {
       title: "",
       dataIndex: "",
       render: (value) => (
-        <TableIcon type={"edit"} onClick={() => setIdRegistro(value.id)} />
+        <TableIcon
+          type={"edit"}
+          onClick={() => form.current.openDrawer(value)}
+        />
       ),
       fixed: "right",
       width: "1%",
@@ -118,7 +110,7 @@ const Registros = ({ history }) => {
     },
   ];
 
-  function limparFiltros() {
+  const limparFiltros = useCallback(() => {
     setFiltroPublicador(null);
     setFiltroPrivilegio(null);
     setFiltroMudou(false);
@@ -128,43 +120,48 @@ const Registros = ({ history }) => {
 
     setFiltros({});
 
-    setReload(true);
-  }
+    dataTable.current.buscarRecurso();
+  }, []);
 
-  function pesquisar() {
+  const pesquisar = useCallback(() => {
     const filtros = {};
 
-    if (filtroPublicador) filtros["publicador"] = filtroPublicador;
+    if (filtroPublicador) filtros["minister"] = filtroPublicador;
 
-    if (filtroPrivilegio) filtros["privilegio"] = filtroPrivilegio;
+    if (filtroPrivilegio) filtros["privilege"] = filtroPrivilegio;
 
-    if (filtroMudou) filtros["mudou"] = filtroMudou;
+    if (filtroMudou) filtros["move"] = filtroMudou;
 
-    if (filtroGrupo) filtros["grupo"] = filtroGrupo;
+    if (filtroGrupo) filtros["group"] = filtroGrupo;
 
-    if (filtroDateInicio)
-      filtros["inicio"] = filtroDateInicio.format("MM/YYYY");
+    if (filtroDateInicio) filtros["begin"] = filtroDateInicio.format("MM/YYYY");
 
-    if (filtroDateFim) filtros["fim"] = filtroDateFim.format("MM/YYYY");
+    if (filtroDateFim) filtros["end"] = filtroDateFim.format("MM/YYYY");
 
     setFiltros(filtros);
 
-    setReload(true);
-  }
+    dataTable.current.buscarRecurso();
+  }, [
+    filtroPublicador,
+    filtroPrivilegio,
+    filtroMudou,
+    filtroGrupo,
+    filtroDateInicio,
+    filtroDateFim,
+  ]);
 
-  async function download() {
+  const download = useCallback(async () => {
     const filtros = {};
 
-    if (filtroPublicador) filtros["publicador"] = filtroPublicador;
+    if (filtroPublicador) filtros["minister"] = filtroPublicador;
 
-    if (filtroPrivilegio) filtros["privilegio"] = filtroPrivilegio;
+    if (filtroPrivilegio) filtros["privilege"] = filtroPrivilegio;
 
-    if (filtroGrupo) filtros["grupo"] = filtroGrupo;
+    if (filtroGrupo) filtros["group"] = filtroGrupo;
 
-    if (filtroDateInicio)
-      filtros["inicio"] = filtroDateInicio.format("MM/YYYY");
+    if (filtroDateInicio) filtros["begin"] = filtroDateInicio.format("MM/YYYY");
 
-    if (filtroDateFim) filtros["fim"] = filtroDateFim.format("MM/YYYY");
+    if (filtroDateFim) filtros["end"] = filtroDateFim.format("MM/YYYY");
 
     let queryParams = "";
     if (filtros) {
@@ -174,45 +171,51 @@ const Registros = ({ history }) => {
     }
 
     const resPublicadores = await api.get(
-      `registros/download?offset=0${queryParams}`,
+      `registers/download?offset=0${queryParams}`,
       { responseType: "arraybuffer" }
     );
     if (resPublicadores) {
       FileDownload(resPublicadores.data, "RelatorioRegistros.xlsx");
     }
-  }
+  }, [
+    filtroPublicador,
+    filtroPrivilegio,
+    filtroGrupo,
+    filtroDateInicio,
+    filtroDateFim,
+  ]);
 
-  async function getPublicadores() {
+  const getPublicadores = useCallback(async () => {
     const publicadores = [];
     const resPublicadores = await api.get(`ministers`);
 
     if (resPublicadores) {
       resPublicadores.data.data.forEach((pub) => {
-        publicadores.push({ value: pub.id, label: pub.nome });
+        publicadores.push({ value: pub.id, label: pub.name });
       });
 
       setPublicadores(publicadores);
     }
-  }
+  }, []);
 
-  async function getGrupos() {
+  const getGrupos = useCallback(async () => {
     const grupos = [];
     const resGrupos = await api.get(`groups`);
 
     if (resGrupos) {
       resGrupos.data.data.forEach((grp) => {
-        grupos.push({ value: grp.id, label: grp.nome });
+        grupos.push({ value: grp.id, label: grp.name });
       });
       setGrupos(grupos);
     }
-  }
+  }, []);
 
   useEffect(() => {
     getPublicadores();
     getGrupos();
-  }, []);
+  }, [getPublicadores, getGrupos]);
 
-  function excluirRegistro(id) {
+  const excluirRegistro = useCallback((id) => {
     confirm({
       title: "Confirmar",
       content: `Deseja realmente excluir este Registro?`,
@@ -224,21 +227,21 @@ const Registros = ({ history }) => {
 
           if (response) {
             message.success("Registro excluído!");
-            setReload(true);
+            dataTable.current.buscarRecurso();
           }
         }
         deletar();
       },
       onCancel() {},
     });
-  }
+  }, []);
 
   return (
     <ContentTransparent>
       <Header>
         <PageHeader style={{ padding: 0 }} title="Registros" />
         {user_access === "A" && (
-          <Button type="primary" onClick={() => setCadastroVisible(true)}>
+          <Button type="primary" onClick={() => form.current.openDrawer(null)}>
             Novo registro
             <Icon type="arrow-right" />
           </Button>
@@ -294,8 +297,8 @@ const Registros = ({ history }) => {
             Início
             <DatePickerMonth
               placeholder="Mês/Ano Início"
-              handleChange={(date, dateM) => {
-                setFiltroDateInicio(dateM);
+              handleChange={(date) => {
+                setFiltroDateInicio(date.format());
               }}
             />
           </Col>
@@ -303,8 +306,8 @@ const Registros = ({ history }) => {
             Fim
             <DatePickerMonth
               placeholder="Mês/Ano Fim"
-              handleChange={(date, dateM) => {
-                setFiltroDateFim(dateM);
+              handleChange={(date) => {
+                setFiltroDateFim(date.format());
               }}
             />
           </Col>
@@ -322,7 +325,7 @@ const Registros = ({ history }) => {
                 border: "none",
                 backgroundColor: "#82e3ba",
               }}
-              onClick={() => download()}
+              onClick={download}
             >
               Download XLSX
               <Icon type="download" />
@@ -330,12 +333,12 @@ const Registros = ({ history }) => {
             <Button
               style={{ marginRight: 15 }}
               type="danger"
-              onClick={() => limparFiltros()}
+              onClick={limparFiltros}
             >
               Limpar
               <Icon type="delete" />
             </Button>
-            <Button type="primary" onClick={() => pesquisar()}>
+            <Button type="primary" onClick={pesquisar}>
               Pesquisar
               <Icon type="search" />
             </Button>
@@ -344,21 +347,16 @@ const Registros = ({ history }) => {
       </ContentLight>
       <ContentLight>
         <DataTable
-          reload={reload}
-          handleReload={(r) => setReload(r)}
+          ref={dataTable}
           columns={columns}
           filtros={filtros}
           recurso="registers"
         />
       </ContentLight>
       <FormRegistros
-        registro={idRegistro}
-        handleVisible={(status, reload, recurso) => {
-          setCadastroVisible(status);
-          setReload(reload);
-          setIdRegistro(recurso);
-        }}
-        visible={cadastroVisible}
+        ref={form}
+        publicadores={publicadores}
+        reload={() => dataTable.current.buscarRecurso()}
       />
     </ContentTransparent>
   );

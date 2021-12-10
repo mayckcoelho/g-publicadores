@@ -180,7 +180,7 @@ const FormPublicadores = ({ reload }, ref) => {
       width="45%"
       placement="right"
       closable={false}
-      onClose={() => closeDrawer()}
+      onClose={closeDrawer}
       visible={visible}
     >
       <Header>
@@ -213,8 +213,9 @@ const FormPublicadores = ({ reload }, ref) => {
                   )}
                 </Form.Item>
               </Col>
-
-              <Col xs={24} sm={12}>
+            </Row>
+            <Row gutter={30}>
+              <Col xs={24} sm={24}>
                 <Form.Item label="Status">
                   <Radio.Group
                     name="status"
@@ -223,6 +224,7 @@ const FormPublicadores = ({ reload }, ref) => {
                     buttonStyle="solid"
                   >
                     <Radio.Button value="A">Ativo</Radio.Button>
+                    <Radio.Button value="R">Irregular</Radio.Button>
                     <Radio.Button value="I">Inativo</Radio.Button>
                     <Radio.Button value="M">Mudou</Radio.Button>
                   </Radio.Group>
@@ -246,7 +248,6 @@ const FormPublicadores = ({ reload }, ref) => {
                     handleChange={(date) => {
                       formik.setFieldValue("birthdate", date);
                     }}
-                    handleBlur={formik.handleBlur}
                   />
                   {formik.errors.birthdate && formik.touched.birthdate && (
                     <span style={{ color: "red" }}>
@@ -264,7 +265,6 @@ const FormPublicadores = ({ reload }, ref) => {
                     handleChange={(date) => {
                       formik.setFieldValue("baptism", date);
                     }}
-                    handleBlur={formik.handleBlur}
                   />
                 </Form.Item>
               </Col>

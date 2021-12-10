@@ -34,10 +34,8 @@ export const DatePickerMonth = ({
   field,
   ...props
 }) => {
-  function onChange(date, dateString) {
-    const dt = date ? date.format() : "";
-
-    handleChange(dt, date);
+  function onChange(date) {
+    handleChange(date);
   }
 
   return (

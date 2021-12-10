@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { withRouter } from "react-router-dom";
+import React, {
+  useState,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import api from "../../../services";
 
 import {
@@ -15,7 +19,7 @@ import {
   message,
   Radio,
 } from "antd";
-import { withFormik, Field, Form as FormFormik } from "formik";
+import { useFormik } from "formik";
 import { Header } from "../../../shared/styles";
 import SchemaValidate from "./validate";
 import { ContentLight } from "../../../shared/components/Content";
@@ -23,79 +27,131 @@ import { InputTextArea, InputNumber } from "../../../shared/form/DefaultInput";
 import { DatePickerMonth } from "../../../shared/form/DatePickerSimple";
 import Select from "../../../shared/form/Select";
 import moment from "moment";
+const date = moment().subtract(1, "month");
 
 const { confirm } = Modal;
 
-const FormRegistros = ({
-  resetForm,
-  values,
-  setFieldValue,
-  setValues,
-  errors,
-  touched,
-  handleVisible,
-  visible,
-  registro,
-}) => {
+const FormRegistros = ({ reload, publicadores }, ref) => {
+  const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [publicadores, setPublicadores] = useState([]);
+  const [registro, setRegistro] = useState(null);
 
-  useEffect(() => {
-    async function buscarRegistro() {
-      if (registro) {
-        setLoading(true);
-        handleVisible(true, false, registro);
-
-        const response = await api.get(`registers/${registro}`);
-
-        if (response) {
-          const newValues = {
-            ...response.data,
-            dateM: moment(response.data.date),
-          };
-          setValues(newValues);
-        }
-        setLoading(false);
-      }
+  const getInitialValue = useCallback(() => {
+    if (registro) {
+      return {
+        ...registro,
+        date: moment(registro.date.split("T")[0]),
+        minister: registro.minister.id,
+      };
+    } else {
+      return {
+        date: date,
+        publishers: "0",
+        videos: "0",
+        timeValue: "H",
+        hours: "0",
+        revisits: "0",
+        studies: "0",
+        obs: "",
+        minister: "",
+      };
     }
+  }, [registro]);
 
-    buscarRegistro();
-  }, [registro, handleVisible, setValues]);
-
-  async function getPublicadores() {
-    const publicadores = [];
-    const resPublicadores = await api.get(`ministers`);
-
-    if (resPublicadores) {
-      resPublicadores.data.data.forEach((pub) => {
-        publicadores.push({ value: pub.id, label: pub.nome });
-      });
-      setPublicadores(publicadores);
-    }
-  }
-
-  useEffect(() => {
-    getPublicadores();
-  }, []);
-
-  function closeDrawer(checkClose = true) {
-    if (checkClose) {
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: getInitialValue(),
+    validationSchema: SchemaValidate,
+    onSubmit: async (values, { resetForm }) => {
       confirm({
         title: "Confirmar",
-        content: `Você perderá as alterações. Deseja realmente fechar?`,
+        content: `Deseja realmente salvar ${
+          !registro ? "este" : "a edição deste"
+        } Registro?`,
         okText: "Sim",
         cancelText: "Não",
         onOk() {
-          resetForm();
-          handleVisible(false, false);
+          async function salvarRegistro() {
+            setLoading(() => true);
+            const idRegistro = registro ? registro.id : "";
+            const method = idRegistro ? "put" : "post";
+
+            const publicador = publicadores.find(
+              (pub) => pub.value === values.minister
+            );
+            const data = {
+              date: values.date.format(),
+              publishers: values.publishers,
+              videos: values.videos,
+              timeValue: values.timeValue,
+              hours: values.hours,
+              revisits: values.revisits,
+              studies: values.studies,
+              obs: values.obs,
+              minister: {
+                id: publicador.value,
+                name: publicador.label,
+              },
+            };
+
+            const response = await api[method](`registers/${idRegistro}`, data);
+
+            if (response) {
+              message.success(
+                `Registro ${
+                  method === "post" ? "criado" : "alterado"
+                } com sucesso!`
+              );
+
+              resetForm();
+              setVisible(false);
+              setRegistro(null);
+              reload();
+            }
+            setLoading(() => false);
+          }
+          salvarRegistro();
         },
         onCancel() {},
       });
-    } else {
-      resetForm();
-      handleVisible(false, false);
-    }
-  }
+    },
+  });
+
+  const openDrawer = useCallback((registro) => {
+    setVisible(true);
+    setRegistro(registro);
+  }, []);
+
+  const closeDrawer = useCallback(
+    (checkClose = true) => {
+      if (checkClose) {
+        confirm({
+          title: "Confirmar",
+          content: `Você perderá as alterações. Deseja realmente fechar?`,
+          okText: "Sim",
+          cancelText: "Não",
+          onOk() {
+            formik.resetForm();
+            setVisible(false);
+            setRegistro(null);
+          },
+          onCancel() {},
+        });
+      } else {
+        formik.resetForm();
+        setVisible(false);
+        setRegistro(null);
+      }
+    },
+    [formik]
+  );
+
+  useImperativeHandle(ref, () => {
+    return {
+      openDrawer,
+      closeDrawer,
+    };
+  });
 
   return (
     <Drawer
@@ -103,7 +159,7 @@ const FormRegistros = ({
       width="45%"
       placement="right"
       closable={false}
-      onClose={() => closeDrawer()}
+      onClose={closeDrawer}
       visible={visible}
     >
       <Header>
@@ -115,43 +171,54 @@ const FormRegistros = ({
       </Header>
       <ContentLight>
         <Spin spinning={loading}>
-          <FormFormik layout="vertical">
+          <form onSubmit={formik.handleSubmit}>
             <Row gutter={30}>
               <Col xs={24} sm={12}>
                 <Form.Item
                   label="Publicador"
                   validateStatus={
-                    errors.minister && touched.minister ? "error" : ""
+                    formik.errors.minister && formik.touched.minister
+                      ? "error"
+                      : ""
                   }
                 >
                   <Select
                     name="minister"
                     placeholder="Selecione um publicador"
-                    value={values.minister ? values.minister : undefined}
+                    value={
+                      formik.values.minister
+                        ? formik.values.minister
+                        : undefined
+                    }
                     options={publicadores}
-                    onChange={(value) => setFieldValue("minister", value)}
+                    onChange={(value) =>
+                      formik.setFieldValue("minister", value)
+                    }
                   />
-                  {errors.minister && touched.minister && (
-                    <span style={{ color: "red" }}>{errors.minister}</span>
+                  {formik.errors.minister && formik.touched.minister && (
+                    <span style={{ color: "red" }}>
+                      {formik.errors.minister}
+                    </span>
                   )}
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
                 <Form.Item
                   label="Mês/Ano"
-                  validateStatus={errors.dateM && touched.dateM ? "error" : ""}
+                  validateStatus={
+                    formik.errors.date && formik.touched.date ? "error" : ""
+                  }
                 >
-                  <Field
-                    component={DatePickerMonth}
-                    name="dateM"
+                  <DatePickerMonth
+                    name="date"
                     placeholder="Mês/Ano"
-                    handleChange={(date, dateM) => {
-                      setFieldValue("dateM", dateM);
-                      setFieldValue("date", date);
+                    value={formik.values.date}
+                    handleChange={(date) => {
+                      formik.setFieldValue("date", date);
                     }}
                   />
-                  {errors.dateM && touched.dateM && (
-                    <span style={{ color: "red" }}>{errors.dateM}</span>
+                  {formik.errors.date && formik.touched.date && (
+                    <span style={{ color: "red" }}>{formik.errors.date}</span>
                   )}
                 </Form.Item>
               </Col>
@@ -161,17 +228,23 @@ const FormRegistros = ({
                 <Form.Item
                   label="Publicações"
                   validateStatus={
-                    errors.publishers && touched.publishers ? "error" : ""
+                    formik.errors.publishers && formik.touched.publishers
+                      ? "error"
+                      : ""
                   }
                 >
-                  <Field
-                    component={InputNumber}
+                  <InputNumber
                     name="publishers"
                     placeholder="Publicações"
-                    handleChange={(value) => setFieldValue("publishers", value)}
+                    value={formik.values.publishers}
+                    handleChange={(value) =>
+                      formik.setFieldValue("publishers", value)
+                    }
                   />
-                  {errors.publishers && touched.publishers && (
-                    <span style={{ color: "red" }}>{errors.publishers}</span>
+                  {formik.errors.publishers && formik.touched.publishers && (
+                    <span style={{ color: "red" }}>
+                      {formik.errors.publishers}
+                    </span>
                   )}
                 </Form.Item>
               </Col>
@@ -179,17 +252,19 @@ const FormRegistros = ({
                 <Form.Item
                   label="Vídeos"
                   validateStatus={
-                    errors.videos && touched.videos ? "error" : ""
+                    formik.errors.videos && formik.touched.videos ? "error" : ""
                   }
                 >
-                  <Field
-                    component={InputNumber}
+                  <InputNumber
                     name="videos"
+                    value={formik.values.videos}
                     placeholder="Vídeos"
-                    handleChange={(value) => setFieldValue("videos", value)}
+                    handleChange={(value) =>
+                      formik.setFieldValue("videos", value)
+                    }
                   />
-                  {errors.videos && touched.videos && (
-                    <span style={{ color: "red" }}>{errors.videos}</span>
+                  {formik.errors.videos && formik.touched.videos && (
+                    <span style={{ color: "red" }}>{formik.errors.videos}</span>
                   )}
                 </Form.Item>
               </Col>
@@ -199,10 +274,8 @@ const FormRegistros = ({
                 <Form.Item label="Registro em">
                   <Radio.Group
                     name="timeValue"
-                    value={values.timeValue}
-                    onChange={(e) => {
-                      setFieldValue("timeValue", e.target.value);
-                    }}
+                    value={formik.values.timeValue}
+                    onChange={formik.handleChange}
                     buttonStyle="solid"
                   >
                     <Radio.Button value="H">Horas</Radio.Button>
@@ -213,16 +286,20 @@ const FormRegistros = ({
               <Col xs={24} sm={12}>
                 <Form.Item
                   label="Tempo"
-                  validateStatus={errors.hours && touched.hours ? "error" : ""}
+                  validateStatus={
+                    formik.errors.hours && formik.touched.hours ? "error" : ""
+                  }
                 >
-                  <Field
-                    component={InputNumber}
+                  <InputNumber
                     name="hours"
                     placeholder="Tempo"
-                    handleChange={(value) => setFieldValue("hours", value)}
+                    value={formik.values.hours}
+                    handleChange={(value) =>
+                      formik.setFieldValue("hours", value)
+                    }
                   />
-                  {errors.hours && touched.hours && (
-                    <span style={{ color: "red" }}>{errors.hours}</span>
+                  {formik.errors.hours && formik.touched.hours && (
+                    <span style={{ color: "red" }}>{formik.errors.hours}</span>
                   )}
                 </Form.Item>
               </Col>
@@ -230,17 +307,23 @@ const FormRegistros = ({
                 <Form.Item
                   label="Revisitas"
                   validateStatus={
-                    errors.revisits && touched.revisits ? "error" : ""
+                    formik.errors.revisits && formik.touched.revisits
+                      ? "error"
+                      : ""
                   }
                 >
-                  <Field
-                    component={InputNumber}
+                  <InputNumber
                     name="revisits"
                     placeholder="Revisitas"
-                    handleChange={(value) => setFieldValue("revisits", value)}
+                    value={formik.values.revisits}
+                    handleChange={(value) =>
+                      formik.setFieldValue("revisits", value)
+                    }
                   />
-                  {errors.revisits && touched.revisits && (
-                    <span style={{ color: "red" }}>{errors.revisits}</span>
+                  {formik.errors.revisits && formik.touched.revisits && (
+                    <span style={{ color: "red" }}>
+                      {formik.errors.revisits}
+                    </span>
                   )}
                 </Form.Item>
               </Col>
@@ -248,17 +331,23 @@ const FormRegistros = ({
                 <Form.Item
                   label="Estudos"
                   validateStatus={
-                    errors.studies && touched.studies ? "error" : ""
+                    formik.errors.studies && formik.touched.studies
+                      ? "error"
+                      : ""
                   }
                 >
-                  <Field
-                    component={InputNumber}
+                  <InputNumber
                     name="studies"
                     placeholder="Estudos"
-                    handleChange={(value) => setFieldValue("studies", value)}
+                    value={formik.values.studies}
+                    handleChange={(value) =>
+                      formik.setFieldValue("studies", value)
+                    }
                   />
-                  {errors.studies && touched.studies && (
-                    <span style={{ color: "red" }}>{errors.studies}</span>
+                  {formik.errors.studies && formik.touched.studies && (
+                    <span style={{ color: "red" }}>
+                      {formik.errors.studies}
+                    </span>
                   )}
                 </Form.Item>
               </Col>
@@ -267,10 +356,11 @@ const FormRegistros = ({
             <Row gutter={30}>
               <Col xs={24} sm={24}>
                 <Form.Item label="Observação">
-                  <Field
-                    component={InputTextArea}
+                  <InputTextArea
                     name="obs"
                     rows={3}
+                    value={formik.values.obs}
+                    onChange={formik.handleChange}
                     maxLength={200}
                     placeholder="Observação"
                   />
@@ -280,71 +370,16 @@ const FormRegistros = ({
 
             <Row>
               <Col xs={24} sm={12}>
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button type="primary" htmlType="submit">
-                    Salvar Registro <Icon type="arrow-right" />
-                  </Button>
-                </Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Salvar Registro <Icon type="arrow-right" />
+                </Button>
               </Col>
             </Row>
-          </FormFormik>
+          </form>
         </Spin>
       </ContentLight>
     </Drawer>
   );
 };
 
-const HandleFormRegistros = withFormik({
-  mapPropsToValues: () => ({
-    dateM: moment(),
-    date: moment().format(),
-    publishers: "0",
-    videos: "0",
-    timeValue: "H",
-    hours: "0",
-    revisits: "0",
-    studies: "0",
-    obs: "",
-    minister: "",
-  }),
-  validationSchema: SchemaValidate,
-
-  handleSubmit: async (
-    values,
-    { props: { registro, handleVisible }, resetForm }
-  ) => {
-    confirm({
-      title: "Confirmar",
-      content: `Deseja realmente salvar ${
-        !registro ? "este" : "a edição deste"
-      } Registro?`,
-      okText: "Sim",
-      cancelText: "Não",
-      onOk() {
-        async function salvarRegistro() {
-          const idRegistro = registro ? registro : "";
-          const method = idRegistro ? "put" : "post";
-
-          const response = await api[method](`registers/${idRegistro}`, values);
-
-          if (response) {
-            message.success(
-              `Registro ${
-                method === "post" ? "criado" : "alterado"
-              } com sucesso!`
-            );
-
-            resetForm();
-            handleVisible(false, true);
-          }
-        }
-
-        salvarRegistro();
-      },
-      onCancel() {},
-    });
-  },
-  displayName: "RegistrosForm",
-})(FormRegistros);
-
-export default withRouter(HandleFormRegistros);
+export default forwardRef(FormRegistros);

@@ -75,6 +75,7 @@ const Publicadores = () => {
           color={
             {
               A: "green",
+              R: "purple",
               I: "red",
               M: "geekblue",
             }[status]
@@ -83,6 +84,7 @@ const Publicadores = () => {
           {
             {
               A: "Ativo",
+              R: "Irregular",
               I: "Inativo",
               M: "Mudou",
             }[status]
