@@ -21,7 +21,7 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
       const sortField = params.sortField;
       const sortOrder = params.sortOrder;
       const filters = params.filters;
-
+      console.log("filters", filters);
       for (let filter in filters) {
         queryParams += `&${filter}=${filters[filter]}`;
       }
