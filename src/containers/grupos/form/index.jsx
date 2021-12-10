@@ -148,6 +148,7 @@ const FormGrupos = ({ reload }, ref) => {
                     placeholder="Nome"
                     value={formik.values.name}
                     onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                   />
                   {formik.errors.name && formik.touched.name && (
                     <span style={{ color: "red" }}>{formik.errors.name}</span>
@@ -168,6 +169,7 @@ const FormGrupos = ({ reload }, ref) => {
                     placeholder="Responsável"
                     value={formik.values.elder}
                     onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                   />
                   {formik.errors.elder && formik.touched.elder && (
                     <span style={{ color: "red" }}>{formik.errors.elder}</span>

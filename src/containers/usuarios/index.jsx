@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 
 import { Button, Icon, PageHeader } from "antd";
 import { Header } from "../../shared/styles";
@@ -12,9 +12,8 @@ import { TableIcon } from "../../shared/styles/index";
 import consts from "../../consts";
 
 const Usuarios = () => {
-  const [reload, setReload] = useState(false);
-  const [cadastroVisible, setCadastroVisible] = useState(false);
-  const [idUser, setIdUser] = useState(null);
+  const dataTable = useRef(null);
+  const form = useRef(null);
 
   const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email;
 
@@ -34,7 +33,10 @@ const Usuarios = () => {
       title: "",
       dataIndex: "",
       render: (value) => (
-        <TableIcon type={"edit"} onClick={() => setIdUser(value.id)} />
+        <TableIcon
+          type={"edit"}
+          onClick={() => form.current.openDrawer(value)}
+        />
       ),
       fixed: "right",
       width: "1%",
@@ -47,28 +49,18 @@ const Usuarios = () => {
       <Header>
         <PageHeader style={{ padding: 0 }} title="Usuários" />
         {consts.ALLOWED_EMAILS.includes(user_email) && (
-          <Button type="primary" onClick={() => setCadastroVisible(true)}>
+          <Button type="primary" onClick={() => form.current.openDrawer(null)}>
             Novo usuário
             <Icon type="arrow-right" />
           </Button>
         )}
       </Header>
       <ContentLight>
-        <DataTable
-          reload={reload}
-          handleReload={(r) => setReload(r)}
-          columns={columns}
-          recurso="users"
-        />
+        <DataTable ref={dataTable} columns={columns} recurso="users" />
       </ContentLight>
       <FormUsuarios
-        usuario={idUser}
-        handleVisible={(status, reload, recurso) => {
-          setCadastroVisible(status);
-          setReload(reload);
-          setIdUser(recurso);
-        }}
-        visible={cadastroVisible}
+        ref={form}
+        reload={() => dataTable.current.buscarRecurso()}
       />
     </ContentTransparent>
   );

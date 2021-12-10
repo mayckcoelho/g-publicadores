@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { withRouter } from "react-router-dom";
+import React, {
+  useState,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import api from "../../../services";
 import SchemaValidate from "./validate";
 
@@ -15,62 +19,108 @@ import {
   Drawer,
   message,
 } from "antd";
-import { withFormik, Field, Form as FormFormik } from "formik";
+import { useFormik } from "formik";
 import { Header } from "../../../shared/styles";
 import { ContentLight } from "../../../shared/components/Content";
 import { InputText } from "../../../shared/form/DefaultInput";
 
 const { confirm } = Modal;
 
-const FormUsuarios = ({
-  setFieldValue,
-  values,
-  resetForm,
-  setValues,
-  errors,
-  touched,
-  handleVisible,
-  visible,
-  usuario,
-}) => {
+const FormUsuarios = ({ reload }, ref) => {
+  const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [usuario, setUsuario] = useState(null);
 
-  useEffect(() => {
-    async function buscarUsuario() {
-      if (usuario) {
-        setLoading(true);
-        handleVisible(true, false, usuario);
-
-        const response = await api.get(`users/${usuario}`);
-
-        if (response) {
-          setValues({ name: response.data.name, email: response.data.email });
-        }
-        setLoading(false);
-      }
-    }
-
-    buscarUsuario();
-  }, [usuario, handleVisible, setValues]);
-
-  function closeDrawer(checkClose = true) {
-    if (checkClose) {
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: usuario || {
+      name: "",
+      email: "",
+      password: "",
+      passwordConfirm: "",
+    },
+    validationSchema: SchemaValidate,
+    onSubmit: async (values, { resetForm }) => {
       confirm({
         title: "Confirmar",
-        content: `Você perderá as alterações. Deseja realmente fechar?`,
+        content: `Deseja realmente salvar ${
+          !usuario ? "este" : "a edição deste"
+        } Usuário?`,
         okText: "Sim",
         cancelText: "Não",
         onOk() {
-          resetForm();
-          handleVisible(false, false);
+          async function salvarUsuario() {
+            setLoading(() => true);
+            const idUsuario = usuario ? usuario.id : "";
+            const method = idUsuario ? "put" : "post";
+
+            const data = {
+              name: values.name,
+              email: values.email,
+            };
+
+            if (method === "post") {
+              data.password = values.password;
+            }
+
+            const response = await api[method](`users/${idUsuario}`, data);
+
+            if (response) {
+              message.success(
+                `Usuário ${
+                  method === "post" ? "criado" : "alterado"
+                } com sucesso!`
+              );
+
+              resetForm();
+              setVisible(false);
+              setUsuario(null);
+              reload();
+            }
+            setLoading(() => false);
+          }
+          salvarUsuario();
         },
         onCancel() {},
       });
-    } else {
-      resetForm();
-      handleVisible(false, false);
-    }
-  }
+    },
+  });
+
+  const openDrawer = useCallback((usuario) => {
+    setVisible(true);
+    setUsuario(usuario);
+  }, []);
+
+  const closeDrawer = useCallback(
+    (checkClose = true) => {
+      if (checkClose) {
+        confirm({
+          title: "Confirmar",
+          content: `Você perderá as alterações. Deseja realmente fechar?`,
+          okText: "Sim",
+          cancelText: "Não",
+          onOk() {
+            formik.resetForm();
+            setVisible(false);
+            setUsuario(null);
+          },
+          onCancel() {},
+        });
+      } else {
+        formik.resetForm();
+        setVisible(false);
+        setUsuario(null);
+      }
+    },
+    [formik]
+  );
+
+  useImperativeHandle(ref, () => {
+    return {
+      openDrawer,
+      closeDrawer,
+    };
+  });
 
   return (
     <Drawer
@@ -90,16 +140,24 @@ const FormUsuarios = ({
       </Header>
       <ContentLight>
         <Spin spinning={loading}>
-          <FormFormik layout="vertical">
+          <form onSubmit={formik.handleSubmit}>
             <Row gutter={30}>
               <Col xs={24} sm={24}>
                 <Form.Item
                   label="Nome"
-                  validateStatus={errors.name && touched.name ? "error" : ""}
+                  validateStatus={
+                    formik.errors.name && formik.touched.name ? "error" : ""
+                  }
                 >
-                  <Field component={InputText} name="name" placeholder="Nome" />
-                  {errors.name && touched.name && (
-                    <span style={{ color: "red" }}>{errors.name}</span>
+                  <InputText
+                    name="name"
+                    placeholder="Nome"
+                    value={formik.values.name}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  {formik.errors.name && formik.touched.name && (
+                    <span style={{ color: "red" }}>{formik.errors.name}</span>
                   )}
                 </Form.Item>
               </Col>
@@ -108,19 +166,79 @@ const FormUsuarios = ({
               <Col xs={24} sm={24}>
                 <Form.Item
                   label="Email"
-                  validateStatus={errors.email && touched.email ? "error" : ""}
+                  validateStatus={
+                    formik.errors.email && formik.touched.email ? "error" : ""
+                  }
                 >
-                  <Field
-                    component={InputText}
+                  <InputText
                     name="email"
                     placeholder="Email"
+                    value={formik.values.email}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                   />
-                  {errors.email && touched.email && (
-                    <span style={{ color: "red" }}>{errors.email}</span>
+                  {formik.errors.email && formik.touched.email && (
+                    <span style={{ color: "red" }}>{formik.errors.email}</span>
                   )}
                 </Form.Item>
               </Col>
             </Row>
+            {!usuario && (
+              <>
+                <Row gutter={30}>
+                  <Col xs={24} sm={24}>
+                    <Form.Item
+                      label="Senha"
+                      validateStatus={
+                        formik.errors.password && formik.touched.password
+                          ? "error"
+                          : ""
+                      }
+                    >
+                      <InputText
+                        name="password"
+                        placeholder="Senha"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                      {formik.errors.password && formik.touched.password && (
+                        <span style={{ color: "red" }}>
+                          {formik.errors.password}
+                        </span>
+                      )}
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={30}>
+                  <Col xs={24} sm={24}>
+                    <Form.Item
+                      label="Confirmar Senha"
+                      validateStatus={
+                        formik.errors.passwordConfirm &&
+                        formik.touched.passwordConfirm
+                          ? "error"
+                          : ""
+                      }
+                    >
+                      <InputText
+                        name="passwordConfirm"
+                        placeholder="Senha"
+                        value={formik.values.passwordConfirm}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                      {formik.errors.passwordConfirm &&
+                        formik.touched.passwordConfirm && (
+                          <span style={{ color: "red" }}>
+                            {formik.errors.passwordConfirm}
+                          </span>
+                        )}
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </>
+            )}
 
             <Row>
               <Col xs={24} sm={12}>
@@ -131,53 +249,11 @@ const FormUsuarios = ({
                 </Form.Item>
               </Col>
             </Row>
-          </FormFormik>
+          </form>
         </Spin>
       </ContentLight>
     </Drawer>
   );
 };
 
-const HandleFormUsuarios = withFormik({
-  mapPropsToValues: () => ({ name: "", email: "" }),
-  validationSchema: SchemaValidate,
-
-  handleSubmit: async (
-    values,
-    { props: { usuario, handleVisible }, resetForm }
-  ) => {
-    confirm({
-      title: "Confirmar",
-      content: `Deseja realmente salvar ${
-        !usuario ? "este" : "a edição deste"
-      } Código de Liberação?`,
-      okText: "Sim",
-      cancelText: "Não",
-      onOk() {
-        async function salvarUsuario() {
-          const idUser = usuario ? usuario : "";
-          const method = idUser ? "put" : "post";
-
-          const response = await api[method](`users/${idUser}`, values);
-
-          if (response) {
-            message.success(
-              `Usuário ${
-                method === "post" ? "criado" : "alterado"
-              } com sucesso!`
-            );
-
-            resetForm();
-            handleVisible(false, true);
-          }
-        }
-
-        salvarUsuario();
-      },
-      onCancel() {},
-    });
-  },
-  displayName: "UsuariosForm",
-})(FormUsuarios);
-
-export default withRouter(HandleFormUsuarios);
+export default forwardRef(FormUsuarios);
