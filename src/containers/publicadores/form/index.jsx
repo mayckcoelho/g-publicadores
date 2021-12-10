@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { withRouter } from "react-router-dom";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import api from "../../../services";
 import { TipoPrivilegio } from "../../../enums";
 
@@ -16,7 +21,7 @@ import {
   message,
   Radio,
 } from "antd";
-import { withFormik, Field, Form as FormFormik } from "formik";
+import { useFormik } from "formik";
 import { Header } from "../../../shared/styles";
 import SchemaValidate from "./validate";
 import { ContentLight } from "../../../shared/components/Content";
@@ -24,49 +29,41 @@ import { InputText } from "../../../shared/form/DefaultInput";
 import { DatePickerSimple } from "../../../shared/form/DatePickerSimple";
 import Select from "../../../shared/form/Select";
 import moment from "moment";
+const date = moment();
 
 const { confirm } = Modal;
 
-const FormPublicadores = ({
-  resetForm,
-  values,
-  setFieldValue,
-  setValues,
-  errors,
-  touched,
-  handleVisible,
-  visible,
-  publicador,
-}) => {
+const FormPublicadores = ({ reload }, ref) => {
+  const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [publicador, setPublicador] = useState(null);
   const [grupos, setGrupos] = useState([]);
 
-  useEffect(() => {
-    async function buscarPublicador() {
-      if (publicador) {
-        setLoading(true);
-        handleVisible(true, false, publicador);
-
-        const response = await api.get(`ministers/${publicador}`);
-
-        if (response) {
-          const newValues = {
-            ...response.data,
-            birthdateM: moment(response.data.birthdate.split("T")[0]),
-            baptismM: response.data.baptism
-              ? moment(response.data.baptism.split("T")[0])
-              : null,
-          };
-          setValues(newValues);
-        }
-        setLoading(false);
-      }
+  const getInitialValue = useCallback(() => {
+    if (publicador) {
+      return {
+        ...publicador,
+        birthdate: moment(publicador.birthdate.split("T")[0]),
+        baptism: publicador.baptism
+          ? moment(publicador.baptism.split("T")[0])
+          : null,
+        group: publicador.group.id,
+      };
+    } else {
+      return {
+        sex: "M",
+        hopeGroup: "O",
+        status: "A",
+        name: "",
+        birthdate: date,
+        baptism: null,
+        group: undefined,
+        privilege: "P",
+      };
     }
+  }, [publicador]);
 
-    buscarPublicador();
-  }, [publicador, handleVisible, setValues]);
-
-  async function getGrupos() {
+  const getGrupos = useCallback(async () => {
     const grupos = [];
     const resGrupos = await api.get(`groups`);
 
@@ -76,30 +73,106 @@ const FormPublicadores = ({
       });
       setGrupos(grupos);
     }
-  }
+  }, []);
 
   useEffect(() => {
     getGrupos();
-  }, []);
+  }, [getGrupos]);
 
-  function closeDrawer(checkClose = true) {
-    if (checkClose) {
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: getInitialValue(),
+    validationSchema: SchemaValidate,
+    onSubmit: async (values, { resetForm }) => {
       confirm({
         title: "Confirmar",
-        content: `Você perderá as alterações. Deseja realmente fechar?`,
+        content: `Deseja realmente salvar ${
+          !publicador ? "este" : "a edição deste"
+        } Publicador?`,
         okText: "Sim",
         cancelText: "Não",
         onOk() {
-          resetForm();
-          handleVisible(false, false);
+          async function salvarPublicador() {
+            setLoading(() => true);
+            const idPublicador = publicador ? publicador.id : "";
+            const method = idPublicador ? "put" : "post";
+
+            const grupo = grupos.find((grp) => grp.value === values.group);
+            const data = {
+              sex: values.sex,
+              hopeGroup: values.hopeGroup,
+              status: values.status,
+              name: values.name,
+              birthdate: values.birthdate.format(),
+              baptism: values.baptism ? values.baptism.format() : undefined,
+              group: {
+                id: grupo.value,
+                name: grupo.label,
+              },
+              privilege: values.privilege,
+            };
+
+            const response = await api[method](
+              `ministers/${idPublicador}`,
+              data
+            );
+
+            if (response) {
+              message.success(
+                `Publicador ${
+                  method === "post" ? "criado" : "alterado"
+                } com sucesso!`
+              );
+
+              resetForm();
+              setVisible(false);
+              setPublicador(null);
+              reload();
+            }
+            setLoading(() => false);
+          }
+          salvarPublicador();
         },
         onCancel() {},
       });
-    } else {
-      resetForm();
-      handleVisible(false, false);
-    }
-  }
+    },
+  });
+
+  const openDrawer = useCallback((publicador) => {
+    setVisible(true);
+    setPublicador(publicador);
+  }, []);
+
+  const closeDrawer = useCallback(
+    (checkClose = true) => {
+      if (checkClose) {
+        confirm({
+          title: "Confirmar",
+          content: `Você perderá as alterações. Deseja realmente fechar?`,
+          okText: "Sim",
+          cancelText: "Não",
+          onOk() {
+            formik.resetForm();
+            setVisible(false);
+            setPublicador(null);
+          },
+          onCancel() {},
+        });
+      } else {
+        formik.resetForm();
+        setVisible(false);
+        setPublicador(null);
+      }
+    },
+    [formik]
+  );
+
+  useImperativeHandle(ref, () => {
+    return {
+      openDrawer,
+      closeDrawer,
+    };
+  });
 
   return (
     <Drawer
@@ -119,16 +192,24 @@ const FormPublicadores = ({
       </Header>
       <ContentLight>
         <Spin spinning={loading}>
-          <FormFormik layout="vertical">
+          <form onSubmit={formik.handleSubmit}>
             <Row gutter={30}>
               <Col xs={24} sm={12}>
                 <Form.Item
                   label="Nome"
-                  validateStatus={errors.name && touched.name ? "error" : ""}
+                  validateStatus={
+                    formik.errors.name && formik.touched.name ? "error" : ""
+                  }
                 >
-                  <Field component={InputText} name="name" placeholder="Nome" />
-                  {errors.name && touched.name && (
-                    <span style={{ color: "red" }}>{errors.name}</span>
+                  <InputText
+                    name="name"
+                    placeholder="Nome"
+                    value={formik.values.name}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  {formik.errors.name && formik.touched.name && (
+                    <span style={{ color: "red" }}>{formik.errors.name}</span>
                   )}
                 </Form.Item>
               </Col>
@@ -137,10 +218,8 @@ const FormPublicadores = ({
                 <Form.Item label="Status">
                   <Radio.Group
                     name="status"
-                    value={values.status}
-                    onChange={(e) => {
-                      setFieldValue("status", e.target.value);
-                    }}
+                    value={formik.values.status}
+                    onChange={formik.handleChange}
                     buttonStyle="solid"
                   >
                     <Radio.Button value="A">Ativo</Radio.Button>
@@ -155,33 +234,37 @@ const FormPublicadores = ({
                 <Form.Item
                   label="Data Nascimento"
                   validateStatus={
-                    errors.birthdateM && touched.birthdateM ? "error" : ""
+                    formik.errors.birthdate && formik.touched.birthdate
+                      ? "error"
+                      : ""
                   }
                 >
-                  <Field
-                    component={DatePickerSimple}
-                    name="birthdateM"
+                  <DatePickerSimple
+                    name="birthdate"
                     placeholder="Nascimento"
-                    handleChange={(date, dateM) => {
-                      setFieldValue("birthdateM", dateM);
-                      setFieldValue("birthdate", date);
+                    value={formik.values.birthdate}
+                    handleChange={(date) => {
+                      formik.setFieldValue("birthdate", date);
                     }}
+                    handleBlur={formik.handleBlur}
                   />
-                  {errors.birthdateM && touched.birthdateM && (
-                    <span style={{ color: "red" }}>{errors.birthdateM}</span>
+                  {formik.errors.birthdate && formik.touched.birthdate && (
+                    <span style={{ color: "red" }}>
+                      {formik.errors.birthdate}
+                    </span>
                   )}
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
                 <Form.Item label="Data Batismo">
-                  <Field
-                    component={DatePickerSimple}
-                    name="baptismM"
+                  <DatePickerSimple
+                    name="baptism"
                     placeholder="Batismo"
-                    handleChange={(date, dateM) => {
-                      setFieldValue("baptismM", dateM);
-                      setFieldValue("baptism", date);
+                    value={formik.values.baptism}
+                    handleChange={(date) => {
+                      formik.setFieldValue("baptism", date);
                     }}
+                    handleBlur={formik.handleBlur}
                   />
                 </Form.Item>
               </Col>
@@ -191,17 +274,21 @@ const FormPublicadores = ({
               <Col xs={24} sm={12}>
                 <Form.Item
                   label="Grupo de Campo"
-                  validateStatus={errors.group && touched.group ? "error" : ""}
+                  validateStatus={
+                    formik.errors.group && formik.touched.group ? "error" : ""
+                  }
                 >
                   <Select
                     name="group"
                     placeholder="Selecione um grupo"
-                    value={values.group ? values.group : undefined}
+                    value={
+                      formik.values.group ? formik.values.group : undefined
+                    }
                     options={grupos}
-                    onChange={(value) => setFieldValue("group", value)}
+                    onChange={(value) => formik.setFieldValue("group", value)}
                   />
-                  {errors.group && touched.group && (
-                    <span style={{ color: "red" }}>{errors.group}</span>
+                  {formik.errors.group && formik.touched.group && (
+                    <span style={{ color: "red" }}>{formik.errors.group}</span>
                   )}
                 </Form.Item>
               </Col>
@@ -212,10 +299,8 @@ const FormPublicadores = ({
                 <Form.Item label="Sexo">
                   <Radio.Group
                     name="sex"
-                    value={values.sex}
-                    onChange={(e) => {
-                      setFieldValue("sex", e.target.value);
-                    }}
+                    value={formik.values.sex}
+                    onChange={formik.handleChange}
                     buttonStyle="solid"
                   >
                     <Radio.Button value="M">Masculino</Radio.Button>
@@ -228,10 +313,8 @@ const FormPublicadores = ({
                 <Form.Item label="Grupo">
                   <Radio.Group
                     name="hopeGroup"
-                    value={values.hopeGroup}
-                    onChange={(e) => {
-                      setFieldValue("hopeGroup", e.target.value);
-                    }}
+                    value={formik.values.hopeGroup}
+                    onChange={formik.handleChange}
                     buttonStyle="solid"
                   >
                     <Radio.Button value="O">Outras Ovelhas</Radio.Button>
@@ -249,11 +332,13 @@ const FormPublicadores = ({
                     mode="multiple"
                     placeholder="Selecione um ou mais privilégios"
                     value={
-                      values.privilege ? values.privilege.split(",") : undefined
+                      formik.values.privilege
+                        ? formik.values.privilege.split(",")
+                        : undefined
                     }
                     options={TipoPrivilegio}
                     onChange={(value) =>
-                      setFieldValue("privilege", value.join(","))
+                      formik.setFieldValue("privilege", value.join(","))
                     }
                   />
                 </Form.Item>
@@ -262,74 +347,16 @@ const FormPublicadores = ({
 
             <Row>
               <Col xs={24} sm={12}>
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button type="primary" htmlType="submit">
-                    Salvar Publicador <Icon type="arrow-right" />
-                  </Button>
-                </Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Salvar Publicador <Icon type="arrow-right" />
+                </Button>
               </Col>
             </Row>
-          </FormFormik>
+          </form>
         </Spin>
       </ContentLight>
     </Drawer>
   );
 };
 
-const HandleFormPublicadores = withFormik({
-  mapPropsToValues: () => ({
-    sex: "M",
-    hopeGroup: "O",
-    status: "A",
-    name: "",
-    birthdate: moment().format(),
-    birthdateM: moment(),
-    baptism: "",
-    baptismM: null,
-    group: "",
-    privilege: "P",
-  }),
-  validationSchema: SchemaValidate,
-
-  handleSubmit: async (
-    values,
-    { props: { publicador, handleVisible }, resetForm }
-  ) => {
-    confirm({
-      title: "Confirmar",
-      content: `Deseja realmente salvar ${
-        !publicador ? "este" : "a edição deste"
-      } Publicador?`,
-      okText: "Sim",
-      cancelText: "Não",
-      onOk() {
-        async function salvarPublicador() {
-          const idPublicador = publicador ? publicador : "";
-          const method = idPublicador ? "put" : "post";
-
-          const response = await api[method](
-            `ministers/${idPublicador}`,
-            values
-          );
-
-          if (response) {
-            message.success(
-              `Publicador ${
-                method === "post" ? "criado" : "alterado"
-              } com sucesso!`
-            );
-
-            resetForm();
-            handleVisible(false, true);
-          }
-        }
-
-        salvarPublicador();
-      },
-      onCancel() {},
-    });
-  },
-  displayName: "PublicadoresForm",
-})(FormPublicadores);
-
-export default withRouter(HandleFormPublicadores);
+export default forwardRef(FormPublicadores);

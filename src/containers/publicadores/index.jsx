@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useRef } from "react";
 import { Button, Icon, PageHeader, Modal, message, Tag } from "antd";
 import FileDownload from "js-file-download";
 
@@ -16,10 +16,9 @@ import consts from "../../consts";
 
 const { confirm } = Modal;
 
-const Publicadores = ({ history }) => {
-  const [reload, setReload] = useState(false);
-  const [cadastroVisible, setCadastroVisible] = useState(false);
-  const [idPublicador, setIdPublicador] = useState(null);
+const Publicadores = () => {
+  const dataTable = useRef(null);
+  const form = useRef(null);
 
   const user_access = JSON.parse(localStorage.getItem(consts.USER_DATA)).access;
 
@@ -95,7 +94,10 @@ const Publicadores = ({ history }) => {
       title: "",
       dataIndex: "",
       render: (value) => (
-        <TableIcon type={"edit"} onClick={() => setIdPublicador(value.id)} />
+        <TableIcon
+          type={"edit"}
+          onClick={() => form.current.openDrawer(value)}
+        />
       ),
       fixed: "right",
       width: "1%",
@@ -131,7 +133,7 @@ const Publicadores = ({ history }) => {
     },
   ];
 
-  function excluirPublicador(id) {
+  const excluirPublicador = useCallback((id) => {
     confirm({
       title: "Confirmar",
       content: `Deseja realmente excluir este Publicador?`,
@@ -143,51 +145,41 @@ const Publicadores = ({ history }) => {
 
           if (response) {
             message.success("Publicador excluído!");
-            setReload(true);
+            dataTable.current.buscarRecurso();
           }
         }
         deletar();
       },
       onCancel() {},
     });
-  }
+  }, []);
 
-  async function gerarCartao(id, nome) {
-    const resPublicadores = await api.get(`publicadores/cartao/${id}`, {
+  const gerarCartao = useCallback(async (id, nome) => {
+    const resPublicadores = await api.get(`ministers/${id}/card`, {
       responseType: "arraybuffer",
     });
     if (resPublicadores) {
       FileDownload(resPublicadores.data, `Cartao ${nome}.xlsx`);
     }
-  }
+  }, []);
 
   return (
     <ContentTransparent>
       <Header>
         <PageHeader style={{ padding: 0 }} title="Publicadores" />
         {user_access === "A" && (
-          <Button type="primary" onClick={() => setCadastroVisible(true)}>
+          <Button type="primary" onClick={() => form.current.openDrawer(null)}>
             Novo publicador
             <Icon type="arrow-right" />
           </Button>
         )}
       </Header>
       <ContentLight>
-        <DataTable
-          reload={reload}
-          handleReload={(r) => setReload(r)}
-          columns={columns}
-          recurso="ministers"
-        />
+        <DataTable ref={dataTable} columns={columns} recurso="ministers" />
       </ContentLight>
       <FormPublicadores
-        publicador={idPublicador}
-        handleVisible={(status, reload, recurso) => {
-          setCadastroVisible(status);
-          setReload(reload);
-          setIdPublicador(recurso);
-        }}
-        visible={cadastroVisible}
+        ref={form}
+        reload={() => dataTable.current.buscarRecurso()}
       />
     </ContentTransparent>
   );

@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 
 import { Button, Icon, PageHeader, Modal, message } from "antd";
 import { Header } from "../../shared/styles";
@@ -11,7 +11,6 @@ import DataTable from "../../shared/components/dataTable";
 import { TableIcon } from "../../shared/styles/index";
 import api from "../../services";
 import consts from "../../consts";
-import { useRef } from "react";
 
 const { confirm } = Modal;
 
