@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback } from "react";
 
 import { Button, Icon, PageHeader, Modal, message } from "antd";
 import { Header } from "../../shared/styles";
@@ -11,13 +11,13 @@ import DataTable from "../../shared/components/dataTable";
 import { TableIcon } from "../../shared/styles/index";
 import api from "../../services";
 import consts from "../../consts";
+import { useRef } from "react";
 
 const { confirm } = Modal;
 
-const Grupos = ({ history }) => {
-  const [reload, setReload] = useState(false);
-  const [cadastroVisible, setCadastroVisible] = useState(false);
-  const [idGrupo, setIdGrupo] = useState(null);
+const Grupos = () => {
+  const dataTable = useRef(null);
+  const form = useRef(null);
 
   const user_email = JSON.parse(localStorage.getItem(consts.USER_DATA)).email;
 
@@ -36,7 +36,10 @@ const Grupos = ({ history }) => {
       title: "",
       dataIndex: "",
       render: (value) => (
-        <TableIcon type={"edit"} onClick={() => setIdGrupo(value.id)} />
+        <TableIcon
+          type={"edit"}
+          onClick={() => form.current.openDrawer(value)}
+        />
       ),
       fixed: "right",
       width: "1%",
@@ -49,7 +52,7 @@ const Grupos = ({ history }) => {
         <TableIcon
           theme="twoTone"
           twoToneColor="#ff0000"
-          type={"delete"}
+          type="delete"
           onClick={() => excluirGrupo(value.id)}
         />
       ),
@@ -59,7 +62,7 @@ const Grupos = ({ history }) => {
     },
   ];
 
-  function excluirGrupo(id) {
+  const excluirGrupo = useCallback((id) => {
     confirm({
       title: "Confirmar",
       content: `Deseja realmente excluir este Grupo de Campo?`,
@@ -71,43 +74,30 @@ const Grupos = ({ history }) => {
 
           if (response) {
             message.success("Grupo de Campo excluído!");
-            setReload(true);
+            dataTable.current.buscarRecurso();
           }
         }
         deletar();
       },
       onCancel() {},
     });
-  }
+  }, []);
 
   return (
     <ContentTransparent>
       <Header>
         <PageHeader style={{ padding: 0 }} title="Grupos" />
         {consts.ALLOWED_EMAILS.includes(user_email) && (
-          <Button type="primary" onClick={() => setCadastroVisible(true)}>
+          <Button type="primary" onClick={() => form.current.openDrawer(null)}>
             Novo grupo
             <Icon type="arrow-right" />
           </Button>
         )}
       </Header>
       <ContentLight>
-        <DataTable
-          reload={reload}
-          handleReload={(r) => setReload(r)}
-          columns={columns}
-          recurso="groups"
-        />
+        <DataTable ref={dataTable} columns={columns} recurso="groups" />
       </ContentLight>
-      <FormGrupos
-        grupo={idGrupo}
-        handleVisible={(status, reload, recurso) => {
-          setCadastroVisible(status);
-          setReload(reload);
-          setIdGrupo(recurso);
-        }}
-        visible={cadastroVisible}
-      />
+      <FormGrupos ref={form} reload={() => dataTable.current.buscarRecurso()} />
     </ContentTransparent>
   );
 };

@@ -3,8 +3,10 @@ import api from "../../../services";
 
 import { Table, Input, Button, Icon, ConfigProvider, Empty } from "antd";
 import { useCallback } from "react";
+import { forwardRef } from "react";
+import { useImperativeHandle } from "react";
 
-const DataTable = ({ recurso, columns, reload, handleReload, filtros }) => {
+const DataTable = ({ recurso, columns, filtros }, ref) => {
   const [dataColumns, setDataColumns] = useState(columns);
   const [data, setData] = useState([]);
   const [pagination, setPagination] = useState({});
@@ -14,7 +16,7 @@ const DataTable = ({ recurso, columns, reload, handleReload, filtros }) => {
 
   const buscarRecurso = useCallback(
     async (params = {}) => {
-      setLoading(true);
+      setLoading(() => true);
 
       let queryParams = "";
 
@@ -50,13 +52,19 @@ const DataTable = ({ recurso, columns, reload, handleReload, filtros }) => {
 
         if (!pages.current) pages.current = 1;
 
-        setLoading(false);
+        setLoading(() => false);
         setData(response.data.data);
         setPagination(pages);
       }
     },
     [filtros, recurso]
   );
+
+  useImperativeHandle(ref, () => {
+    return {
+      buscarRecurso,
+    };
+  });
 
   function handleTableChange(pagination, filters, sorter) {
     const pager = { pagination };
@@ -157,13 +165,6 @@ const DataTable = ({ recurso, columns, reload, handleReload, filtros }) => {
     setDataColumns(cols);
   }, [buscarRecurso, columns, getColumnSearchProps]);
 
-  useEffect(() => {
-    if (reload) {
-      buscarRecurso();
-      handleReload(false);
-    }
-  }, [reload, buscarRecurso, handleReload]);
-
   return (
     <ConfigProvider
       renderEmpty={() => <Empty description="Sem dados para exibir" />}
@@ -183,4 +184,4 @@ const DataTable = ({ recurso, columns, reload, handleReload, filtros }) => {
     </ConfigProvider>
   );
 };
-export default DataTable;
+export default forwardRef(DataTable);

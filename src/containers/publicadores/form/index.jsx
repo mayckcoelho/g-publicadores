@@ -308,7 +308,7 @@ const HandleFormPublicadores = withFormik({
           const method = idPublicador ? "put" : "post";
 
           const response = await api[method](
-            `publicadores/${idPublicador}`,
+            `ministers/${idPublicador}`,
             values
           );
 

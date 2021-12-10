@@ -1,7 +1,7 @@
-import * as Yup from 'yup'
+import * as Yup from "yup";
 
 const Schema = Yup.object().shape({
-    nome: Yup.string().required('Informe o nome do grupo!')
-})
+  name: Yup.string().required("Informe o nome do grupo!"),
+});
 
-export default Schema
+export default Schema;

@@ -325,7 +325,7 @@ const HandleFormRegistros = withFormik({
           const idRegistro = registro ? registro : "";
           const method = idRegistro ? "put" : "post";
 
-          const response = await api[method](`registros/${idRegistro}`, values);
+          const response = await api[method](`registers/${idRegistro}`, values);
 
           if (response) {
             message.success(
