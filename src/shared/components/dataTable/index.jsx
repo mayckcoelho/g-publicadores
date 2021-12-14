@@ -56,17 +56,6 @@ const DataTable = (
     };
   });
 
-  const handleTableChange = useCallback(
-    (filters, sorter) => {
-      buscarRecurso({
-        sortField: sorter.field,
-        sortOrder: sorter.order,
-        filters: filters,
-      });
-    },
-    [buscarRecurso]
-  );
-
   const getColumnSearchProps = useCallback((dataIndex) => {
     return {
       filterDropdown: ({
@@ -161,8 +150,6 @@ const DataTable = (
         rowKey={(record) => record.id}
         dataSource={data}
         loading={loading}
-        pagination={{ position: [{ bottom: "none" }] }}
-        onChange={handleTableChange}
         scroll={{ x: true }}
         tableLayout="fixed"
         size="middle"
