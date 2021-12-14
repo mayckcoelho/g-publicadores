@@ -11,30 +11,38 @@ import FileDownload from "js-file-download";
 import moment from "moment";
 const date = moment().subtract(1, "month");
 
+const initialValues = {
+  minister: null,
+  privilege: null,
+  move: false,
+  group: null,
+  begin: date,
+  end: date,
+};
+
 const FormFilters = ({ reload, publicadores }) => {
   const [grupos, setGrupos] = useState([]);
 
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      minister: null,
-      privilege: null,
-      move: false,
-      group: null,
-      begin: date,
-      end: date,
-    },
-    onSubmit: (values) => {
+  const pesquisar = useCallback(
+    (values) => {
       const filters = {};
 
       if (values.minister) filters.minister = values.minister;
       if (values.privilege) filters.privilege = values.privilege;
       if (values.move) filters.move = values.move;
       if (values.group) filters.group = values.group;
-      if (values.begin) filters.begin = values.begin.format("MM/YYYY");
-      if (values.end) filters.begin = values.end.format("MM/YYYY");
+      if (values.begin) filters.begin = values.begin.format("YYYY/MM");
+      if (values.end) filters.end = values.end.format("YYYY/MM");
+
       reload({ filters });
     },
+    [reload]
+  );
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues,
+    onSubmit: pesquisar,
   });
 
   const download = useCallback(async () => {
@@ -45,8 +53,8 @@ const FormFilters = ({ reload, publicadores }) => {
     if (values.privilege) filters.privilege = values.privilege;
     if (values.move) filters.move = values.move;
     if (values.group) filters.group = values.group;
-    if (values.begin) filters.begin = values.begin.format("MM/YYYY");
-    if (values.end) filters.end = values.end.format("MM/YYYY");
+    if (values.begin) filters.begin = values.begin.format("YYYY/MM");
+    if (values.end) filters.end = values.end.format("YYYY/MM");
 
     let queryParams = "";
     if (filters) {
@@ -84,6 +92,10 @@ const FormFilters = ({ reload, publicadores }) => {
   useEffect(() => {
     getGrupos();
   }, [getGrupos]);
+
+  useEffect(() => {
+    pesquisar(initialValues);
+  }, [pesquisar]);
 
   return (
     <ContentLight style={{ marginBottom: 15 }}>

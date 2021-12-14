@@ -6,7 +6,10 @@ import { useCallback } from "react";
 import { forwardRef } from "react";
 import { useImperativeHandle } from "react";
 
-const DataTable = ({ recurso, columns, filtros }, ref) => {
+const DataTable = (
+  { recurso, searchOnMount = true, columns, filtros },
+  ref
+) => {
   const [dataColumns, setDataColumns] = useState(columns);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +24,7 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
       const sortField = params.sortField;
       const sortOrder = params.sortOrder;
       const filters = params.filters;
-      console.log("filters", filters);
+
       for (let filter in filters) {
         queryParams += `&${filter}=${filters[filter]}`;
       }
@@ -37,7 +40,7 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
         });
       }
 
-      const response = await api.get(`${recurso}?${queryParams}`);
+      const response = await api.get(`${recurso}?${queryParams.slice(1)}`);
 
       if (response) {
         setLoading(() => false);
@@ -53,13 +56,16 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
     };
   });
 
-  function handleTableChange(filters, sorter) {
-    buscarRecurso({
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      filters: filters,
-    });
-  }
+  const handleTableChange = useCallback(
+    (filters, sorter) => {
+      buscarRecurso({
+        sortField: sorter.field,
+        sortOrder: sorter.order,
+        filters: filters,
+      });
+    },
+    [buscarRecurso]
+  );
 
   const getColumnSearchProps = useCallback((dataIndex) => {
     return {
@@ -130,7 +136,7 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
   }
 
   useEffect(() => {
-    buscarRecurso();
+    if (searchOnMount) buscarRecurso();
 
     const cols = [];
 
@@ -144,7 +150,7 @@ const DataTable = ({ recurso, columns, filtros }, ref) => {
       }
     });
     setDataColumns(cols);
-  }, [buscarRecurso, columns, getColumnSearchProps]);
+  }, [buscarRecurso, searchOnMount, columns, getColumnSearchProps]);
 
   return (
     <ConfigProvider

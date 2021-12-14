@@ -127,6 +127,10 @@ const Registros = () => {
     });
   }, []);
 
+  const reloadData = useCallback((params) => {
+    dataTable.current.buscarRecurso(params);
+  }, []);
+
   return (
     <ContentTransparent>
       <Header>
@@ -138,17 +142,19 @@ const Registros = () => {
           </Button>
         )}
       </Header>
-      <FormFilters
-        reload={(params) => dataTable.current.buscarRecurso(params)}
-        publicadores={publicadores}
-      />
+      <FormFilters reload={reloadData} publicadores={publicadores} />
       <ContentLight>
-        <DataTable ref={dataTable} columns={columns} recurso="registers" />
+        <DataTable
+          ref={dataTable}
+          searchOnMount={false}
+          columns={columns}
+          recurso="registers"
+        />
       </ContentLight>
       <FormRegistros
         ref={form}
         publicadores={publicadores}
-        reload={() => dataTable.current.buscarRecurso()}
+        reload={reloadData}
       />
     </ContentTransparent>
   );
