@@ -227,6 +227,7 @@ const FormPublicadores = ({ reload }, ref) => {
                     <Radio.Button value="R">Irregular</Radio.Button>
                     <Radio.Button value="I">Inativo</Radio.Button>
                     <Radio.Button value="M">Mudou</Radio.Button>
+                    <Radio.Button value="D">Desassociado</Radio.Button>
                   </Radio.Group>
                 </Form.Item>
               </Col>

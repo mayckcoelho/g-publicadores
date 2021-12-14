@@ -76,8 +76,9 @@ const Publicadores = () => {
             {
               A: "green",
               R: "purple",
-              I: "red",
+              I: "volcano",
               M: "geekblue",
+              D: "red",
             }[status]
           }
         >
@@ -87,6 +88,7 @@ const Publicadores = () => {
               R: "Irregular",
               I: "Inativo",
               M: "Mudou",
+              D: "Desassociado",
             }[status]
           }
         </Tag>
