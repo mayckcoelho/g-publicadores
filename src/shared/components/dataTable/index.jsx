@@ -167,6 +167,7 @@ const DataTable = (
         tableLayout="fixed"
         size="middle"
         searchText={searchText}
+        footer={() => `Total: ${data.length}`}
       />
     </ConfigProvider>
   );
