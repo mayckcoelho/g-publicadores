@@ -19,11 +19,13 @@ import {
   Drawer,
   message,
   Radio,
+  Checkbox,
 } from "antd";
 import { useFormik } from "formik";
 import { Header } from "../../../shared/styles";
 import { ContentLight } from "../../../shared/components/Content";
-import { InputText } from "../../../shared/form/DefaultInput";
+import { InputText, InputPassword } from "../../../shared/form/DefaultInput";
+import consts from "../../../consts";
 
 const { confirm } = Modal;
 
@@ -32,15 +34,20 @@ const FormUsuarios = ({ reload }, ref) => {
   const [loading, setLoading] = useState(false);
   const [usuario, setUsuario] = useState(null);
 
+  const user_id = JSON.parse(localStorage.getItem(consts.USER_DATA)).id;
+
   const formik = useFormik({
     enableReinitialize: true,
-    initialValues: usuario || {
-      name: "",
-      email: "",
-      access: "C",
-      password: "",
-      passwordConfirm: "",
-    },
+    initialValues: usuario
+      ? { ...usuario, password: "" }
+      : {
+          name: "",
+          email: "",
+          access: "C",
+          password: "",
+          changePassword: true,
+          passwordConfirm: "",
+        },
     validationSchema: SchemaValidate,
     onSubmit: async (values, { resetForm }) => {
       confirm({
@@ -62,7 +69,7 @@ const FormUsuarios = ({ reload }, ref) => {
               access: values.access,
             };
 
-            if (method === "post") {
+            if (values.changePassword) {
               data.password = values.password;
             }
 
@@ -201,7 +208,23 @@ const FormUsuarios = ({ reload }, ref) => {
                 </Form.Item>
               </Col>
             </Row>
-            {!usuario && (
+            {usuario && usuario.id === user_id && (
+              <Row gutter={30}>
+                <Col xs={24} sm={6}>
+                  Alterar senha?
+                  <Checkbox
+                    name="changePassword"
+                    onChange={(e) =>
+                      formik.setFieldValue("changePassword", e.target.checked)
+                    }
+                    style={{ width: "100%", marginTop: 5 }}
+                  >
+                    {formik.values.changePassword ? "Sim" : "Não"}
+                  </Checkbox>
+                </Col>
+              </Row>
+            )}
+            {formik.values.changePassword && (
               <>
                 <Row gutter={30}>
                   <Col xs={24} sm={24}>
@@ -213,9 +236,10 @@ const FormUsuarios = ({ reload }, ref) => {
                           : ""
                       }
                     >
-                      <InputText
+                      <InputPassword
                         name="password"
                         placeholder="Senha"
+                        type="password"
                         value={formik.values.password}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
@@ -239,9 +263,10 @@ const FormUsuarios = ({ reload }, ref) => {
                           : ""
                       }
                     >
-                      <InputText
+                      <InputPassword
                         name="passwordConfirm"
                         placeholder="Senha"
+                        type="password"
                         value={formik.values.passwordConfirm}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
@@ -260,7 +285,7 @@ const FormUsuarios = ({ reload }, ref) => {
 
             <Row>
               <Col xs={24} sm={12}>
-                <Form.Item style={{ marginBottom: 0 }}>
+                <Form.Item style={{ marginBottom: 0, marginTop: 30 }}>
                   <Button type="primary" htmlType="submit">
                     Salvar Usuário <Icon type="arrow-right" />
                   </Button>
