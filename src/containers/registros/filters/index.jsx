@@ -57,15 +57,8 @@ const FormFilters = ({ reload, publicadores }) => {
     if (values.begin) filters.begin = values.begin.format("YYYY/MM");
     if (values.end) filters.end = values.end.format("YYYY/MM");
 
-    let queryParams = "";
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        queryParams += `&${key}=${value}`;
-      });
-    }
-
     const hide = message.loading("Processando relatório de atividades...");
-    const resPublicadores = await reportsApi.get(`registers?${queryParams}`, {
+    const resPublicadores = await reportsApi.post("registers", filters, {
       responseType: "arraybuffer",
     });
     if (resPublicadores) {
