@@ -76,7 +76,7 @@ const HandleLoginForm = withFormik({
     const { history } = props;
 
     const response = await axios
-      .post(`${consts.BASE_URL}/login`, values)
+      .post(`${process.env.REACT_APP_BASE_URL}/login`, values)
       .catch((e) => {
         notification.warning({
           placeholder: "topRight",

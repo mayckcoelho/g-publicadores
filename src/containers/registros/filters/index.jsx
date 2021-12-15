@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
 import api from "../../../services";
+import reportsApi from "../../../services/reports";
 
-import { Row, Col, Button, Icon, Checkbox } from "antd";
+import { Row, Col, Button, Icon, Checkbox, message } from "antd";
 import { useFormik } from "formik";
 import { ContentLight } from "../../../shared/components/Content";
 import { DatePickerMonth } from "../../../shared/form/DatePickerSimple";
@@ -63,10 +64,13 @@ const FormFilters = ({ reload, publicadores }) => {
       });
     }
 
-    const resPublicadores = await api.get(`registers/download?${queryParams}`, {
+    const hide = message.loading("Processando relatório de atividades...");
+    const resPublicadores = await reportsApi.get(`registers?${queryParams}`, {
       responseType: "arraybuffer",
     });
     if (resPublicadores) {
+      hide();
+      message.success("Download realizado!");
       FileDownload(resPublicadores.data, "RelatorioRegistros.xlsx");
     }
   }, [formik]);

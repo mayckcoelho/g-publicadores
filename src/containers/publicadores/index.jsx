@@ -12,6 +12,7 @@ import DataTable from "../../shared/components/dataTable";
 import { TableIcon } from "../../shared/styles/index";
 import { TipoMascara } from "../../enums";
 import api from "../../services";
+import reportAPI from "../../services/reports";
 import consts from "../../consts";
 
 const { confirm } = Modal;
@@ -126,10 +127,7 @@ const Publicadores = () => {
       title: "",
       dataIndex: "",
       render: (value) => (
-        <TableIcon
-          type={"download"}
-          onClick={() => gerarCartao(value.id, value.nome)}
-        />
+        <TableIcon type={"download"} onClick={() => gerarCartao(value)} />
       ),
       fixed: "right",
       width: 1,
@@ -158,12 +156,15 @@ const Publicadores = () => {
     });
   }, []);
 
-  const gerarCartao = useCallback(async (id, nome) => {
-    const resPublicadores = await api.get(`ministers/${id}/card`, {
+  const gerarCartao = useCallback(async (minister) => {
+    const hide = message.loading("Processando cartão do publicador...");
+    const resPublicadores = await reportAPI.post(`ministers`, minister, {
       responseType: "arraybuffer",
     });
     if (resPublicadores) {
-      FileDownload(resPublicadores.data, `Cartao ${nome}.xlsx`);
+      hide();
+      message.success("Download realizado!");
+      FileDownload(resPublicadores.data, `Cartao ${minister.name}.xlsx`);
     }
   }, []);
 
