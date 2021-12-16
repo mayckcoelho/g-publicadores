@@ -33,7 +33,12 @@ api.interceptors.response.use(
     return response;
   },
   (e) => {
-    switch (e.response.status) {
+    if (!e.status && e.message === "Network Error") {
+      localStorage.clear();
+      window.location.reload();
+    }
+
+    switch (e.status) {
       case 400:
         message.warning(e.response.data.message);
         break;
@@ -48,6 +53,7 @@ api.interceptors.response.use(
       default:
         break;
     }
+
     return Promise.reject(e);
   }
 );
