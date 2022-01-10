@@ -79,8 +79,11 @@ const FormRegistros = ({ reload, publicadores }, ref) => {
             const publicador = publicadores.find(
               (pub) => pub.value === values.minister
             );
+
+            const registerDate = values.date.set({ h: 0, m: 0, s: 0 });
+
             const data = {
-              date: values.date.format(),
+              date: registerDate.format(),
               publishers: values.publishers,
               videos: values.videos,
               timeValue: values.timeValue,
